@@ -15,19 +15,25 @@ mkdir -p /etc/containers/systemd/users/1001
 mkdir -p /home/podman/caddy
 mkdir -p /home/podman/postgres-init
 
-export POSTGRES_PASSWORD=$(pwgen -s 32 1)
-export PW_TIMETRACKER=$(pwgen -s 32 1)
+if [ ! -f /home/podman/.env ]; then
+    POSTGRES_PASSWORD=$(pwgen -s 32 1)
+    PW_TIMETRACKER=$(pwgen -s 32 1)
 
-cat << EOF > /home/podman/.env
+    cat << EOF > /home/podman/.env
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 PW_TIMETRACKER=${PW_TIMETRACKER}
 EOF
 
-chown podman:podman /home/podman/.env
-chmod 600 /home/podman/.env
+    chown podman:podman /home/podman/.env
+    chmod 600 /home/podman/.env
+fi
 
-cp -r "$SCRIPT_DIR/systemd/"* /etc/containers/systemd/users/1001/
-cp "$SCRIPT_DIR/caddy/Caddyfile" /home/podman/caddy/Caddyfile
+set -a
+source /home/podman/.env
+set +a
+
+cp -rf "$SCRIPT_DIR/systemd/"* /etc/containers/systemd/users/1001/
+cp -f "$SCRIPT_DIR/caddy/Caddyfile" /home/podman/caddy/Caddyfile
 
 envsubst < "$SCRIPT_DIR/postgres/init-schemas.sql.template" > /home/podman/postgres-init/init-schemas.sql
 
@@ -39,7 +45,5 @@ systemctl start user@1001.service
 
 sleep 1
 
-sysctl --system
-
 su - podman -c "XDG_RUNTIME_DIR=/run/user/1001 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user daemon-reload"
-su - podman -c "XDG_RUNTIME_DIR=/run/user/1001 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user start caddy.service postgres.service"
+su - podman -c "XDG_RUNTIME_DIR=/run/user/1001 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user restart caddy.service postgres.service"
