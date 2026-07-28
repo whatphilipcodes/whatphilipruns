@@ -1,0 +1,16 @@
+[Unit]
+Description=Database for whatphilipdoes
+After=network-online.target
+
+[Container]
+Image=docker.io/library/postgres:alpine
+Environment=POSTGRES_USER=postgres
+Environment=POSTGRES_DB=whatphilipstores
+EnvironmentFile=/home/podman/.env
+Volume=whatphilipstores.volume:/var/lib/postgresql/data:Z
+Volume=/home/podman/postgres-init:/docker-entrypoint-initdb.d:Z
+Exec=postgres -c shared_buffers=16MB -c work_mem=4MB -c max_connections=50
+Network=internal.network
+
+[Install]
+WantedBy=default.target

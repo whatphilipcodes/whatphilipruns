@@ -12,17 +12,14 @@ scoop install main/hcloud
 ```
 and
 ```sh
-# .env
+# .env.local
 HCLOUD_TOKEN="RW_TOKEN_HERE"
-```
-```sh
-export $(xargs < .env)
 ```
 
 ### Creation
 
 ```sh
-hcloud server create \
+export $(xargs < .env.local) && hcloud server create \
   --name whatphilipruns \
   --image ubuntu-26.04 \
   --type cx23 \
@@ -34,7 +31,7 @@ hcloud server create \
 ### Rebuild
 
 ```sh
-hcloud server rebuild whatphilipruns \
+export $(xargs < .env.local) && hcloud server rebuild whatphilipruns \
   --image ubuntu-26.04 \
   --user-data-from-file .init/cloudconf.yaml
 ```
@@ -49,13 +46,24 @@ sudo cp -r /home/philip/.terminfo/* /usr/share/terminfo/
 
 `Setup`
 ```sh
-
+sudo bash setup.sh
 ```
 
 ### Troubleshooting
 
-`WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!`
+`WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!`<br>
 This has to be run after each rebuild
 ```sh
 ssh-keygen -R "[<server-ip>]:2222"
 ```
+---
+`'xterm-ghostty': unknown terminal type.`<br>
+Some terminal emulations like Ghostty cache into which SSH connections they already injected their definitions. After a rebuild run this:
+```sh
+ghostty +ssh-cache --remove="philip@<server-ip>"
+```
+Afterwards rerun this on the server
+```sh
+sudo cp -r /home/philip/.terminfo/* /usr/share/terminfo/
+```
+---
