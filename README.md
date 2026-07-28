@@ -12,7 +12,11 @@ scoop install main/hcloud
 ```
 and
 ```sh
-export HCLOUD_TOKEN=""
+# .env
+HCLOUD_TOKEN="RW_TOKEN_HERE"
+```
+```sh
+export $(xargs < .env)
 ```
 
 ### Creation
@@ -24,7 +28,7 @@ hcloud server create \
   --type cx23 \
   --location fsn1 \
   --ssh-key "gerdes.philip@gmail.com" \
-  --user-data-from-file .init/create.yaml
+  --user-data-from-file .init/cloudconf.yaml
 ```
 
 ### Rebuild
@@ -32,12 +36,26 @@ hcloud server create \
 ```sh
 hcloud server rebuild whatphilipruns \
   --image ubuntu-26.04 \
-  --user-data-from-file .init/rebuild.yaml
+  --user-data-from-file .init/cloudconf.yaml
 ```
 
 
-### Terminal
+### Setup
 
+`Terminal`
 ```sh
 sudo cp -r /home/philip/.terminfo/* /usr/share/terminfo/
+```
+
+`Setup`
+```sh
+
+```
+
+### Troubleshooting
+
+`WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!`
+This has to be run after each rebuild
+```sh
+ssh-keygen -R "[<server-ip>]:2222"
 ```
