@@ -67,3 +67,7 @@ Afterwards rerun this on the server
 sudo cp -r /home/philip/.terminfo/* /usr/share/terminfo/
 ```
 ---
+`root access`
+```sh
+sudo -i
+```

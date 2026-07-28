@@ -35,6 +35,11 @@ chown -R podman:podman /home/podman/caddy
 chown -R podman:podman /home/podman/postgres-init
 
 loginctl enable-linger podman
+systemctl start user@1001.service
 
-XDG_RUNTIME_DIR=/run/user/1001 su - podman -c "systemctl --user daemon-reload"
-XDG_RUNTIME_DIR=/run/user/1001 su - podman -c "systemctl --user enable --now caddy.service postgres.service"
+sleep 1
+
+sysctl --system
+
+su - podman -c "XDG_RUNTIME_DIR=/run/user/1001 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user daemon-reload"
+su - podman -c "XDG_RUNTIME_DIR=/run/user/1001 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user start caddy.service postgres.service"

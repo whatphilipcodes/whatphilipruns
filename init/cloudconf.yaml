@@ -25,7 +25,7 @@ write_files:
       KbdInteractiveAuthentication no
       ChallengeResponseAuthentication no
       MaxAuthTries 2
-      AllowTcpForwarding no
+      AllowTcpForwarding yes
       X11Forwarding no
       AllowAgentForwarding no
       AuthorizedKeysFile .ssh/authorized_keys
