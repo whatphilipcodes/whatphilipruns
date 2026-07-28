@@ -1,0 +1,52 @@
+#cloud-config
+users:
+  - name: philip
+    groups: sudo, users, admin
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - podman
+  - git
+  - curl
+  - fail2ban
+  - ufw
+  - unattended-upgrades
+
+write_files:
+  - path: /etc/sysctl.d/99-podman-ports.conf
+    content: |
+      net.ipv4.ip_unprivileged_port_start=80
+  - path: /etc/ssh/sshd_config.d/ssh-hardening.conf
+    content: |
+      PermitRootLogin no
+      PasswordAuthentication no
+      Port 2222
+      KbdInteractiveAuthentication no
+      ChallengeResponseAuthentication no
+      MaxAuthTries 2
+      AllowTcpForwarding no
+      X11Forwarding no
+      AllowAgentForwarding no
+      AuthorizedKeysFile .ssh/authorized_keys
+      AllowUsers philip
+
+runcmd:
+  - mkdir -p /home/philip/.ssh
+  - cp /root/.ssh/authorized_keys /home/philip/.ssh/authorized_keys
+  - chown -R philip:philip /home/philip/.ssh
+  - chmod 700 /home/philip/.ssh
+  - chmod 600 /home/philip/.ssh/authorized_keys
+  - sysctl --system
+  - loginctl enable-linger philip
+  - dpkg-reconfigure -f noninteractive unattended-upgrades
+  - printf "[sshd]\nenabled = true\nport = 2222\nbanaction = iptables-multiport\n" > /etc/fail2ban/jail.local
+  - systemctl enable fail2ban
+  - ufw allow 2222/tcp
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw --force enable
+  - reboot
