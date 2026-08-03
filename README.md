@@ -1,6 +1,6 @@
 # Server Init
 
-### Prerequisites
+## Prerequisites
 
 `hcloud cli`
 ```sh
@@ -16,7 +16,7 @@ and
 HCLOUD_TOKEN="RW_TOKEN_HERE"
 ```
 
-### Creation
+## Creation
 
 ```sh
 export $(xargs < .env.local) && hcloud server create \
@@ -28,7 +28,7 @@ export $(xargs < .env.local) && hcloud server create \
   --user-data-from-file .init/cloudconf.yaml
 ```
 
-### Rebuild
+## Rebuild
 
 ```sh
 export $(xargs < .env.local) && hcloud server rebuild whatphilipruns \
@@ -37,7 +37,7 @@ export $(xargs < .env.local) && hcloud server rebuild whatphilipruns \
 ```
 
 
-### Setup
+## Setup
 
 `Setup`
 ```sh
@@ -49,9 +49,9 @@ sudo bash setup.sh
 sudo cp -r /home/philip/.terminfo/* /usr/share/terminfo/
 ```
 
-### Troubleshooting
+## Troubleshooting
 
-### `sudo user`
+### sudo user
 
 `WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!`<br>
 This has to be run after each rebuild
@@ -79,7 +79,7 @@ sudo -i
 sudo su - <username>
 ```
 
-### `podman user`
+### podman user
 
 `switch user` (full access)
 ```sh
