@@ -1,3 +1,7 @@
 http:// {
-    respond "Infrastructure Online" 200
+    respond "whatphilipruns is online." 200
+}
+
+time.whatphilipdoes.com {
+    reverse_proxy timetracker:3000
 }

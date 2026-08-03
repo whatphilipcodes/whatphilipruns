@@ -49,6 +49,11 @@ sudo cp -r /home/philip/.terminfo/* /usr/share/terminfo/
 sudo bash setup.sh
 ```
 
+`Status`
+```sh
+sudo su - podman -c "XDG_RUNTIME_DIR=/run/user/1001 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user status caddy.service postgres.service"
+```
+
 ### Troubleshooting
 
 `WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!`<br>
