@@ -88,10 +88,20 @@ sudo machinectl shell podman@
 
 `podman status overview`
 ```sh
-  systemctl --user list-units --type=service --state=active
+systemctl --user list-units --type=service --state=active
 ```
 
 `podman status detail`
 ```sh
-  systemctl --user status <name>.service
+systemctl --user status <name>.service
+```
+
+`stop service`
+```sh
+systemctl --user stop <name>.service
+```
+
+`start service`
+```sh
+systemctl --user start <name>.service
 ```

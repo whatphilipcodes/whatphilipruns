@@ -1,4 +1,0 @@
-CREATE USER timetracker WITH ENCRYPTED PASSWORD '${PW_TIMETRACKER}';
-CREATE SCHEMA IF NOT EXISTS timetracking AUTHORIZATION timetracker;
-ALTER USER timetracker SET search_path TO timetracking;
-GRANT ALL ON SCHEMA timetracking TO timetracker;
