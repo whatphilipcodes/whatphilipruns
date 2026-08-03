@@ -1,5 +1,5 @@
 [Unit]
-Description=Caddy Reverse Proxy
+Description=reverse proxy (whatphilipruns)
 After=network-online.target
 
 [Container]

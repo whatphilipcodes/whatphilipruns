@@ -1,5 +1,5 @@
 [Unit]
-Description=Timetracker Application
+Description=timetracking app (whatphilipruns)
 After=postgres.service
 
 [Container]
@@ -7,9 +7,9 @@ Image=timetracker:latest
 ContainerName=timetracker
 Network=internal.network
 Network=web.network
+EnvironmentFile=/home/podman/timetracker/.env
 Environment=HOST=0.0.0.0
 Environment=PORT=3000
-Environment=DATABASE_URL=postgresql://postgres_user:postgres_password@postgres:5432/user_database?schema=timetracker
 Exec=node ./dist/server/entry.mjs
 
 [Install]

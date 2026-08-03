@@ -1,11 +1,12 @@
 [Unit]
-Description=Database for whatphilipdoes
+Description=whatphilipstores database (whatphilipruns)
 
 [Container]
-Image=docker.io/library/postgres:16-alpine
+Image=docker.io/library/postgres:18-alpine
 Environment=PGDATA=/var/lib/postgresql/data/pgdata
-EnvironmentFile=/home/podman/.env
+EnvironmentFile=/home/podman/postgres/.env
 Volume=whatphilipstores.volume:/var/lib/postgresql/data
+Volume=/home/podman/postgres/postgres-init:/docker-entrypoint-initdb.d:Z
 Network=internal.network
 ContainerName=systemd-postgres
 

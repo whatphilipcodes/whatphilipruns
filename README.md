@@ -39,22 +39,19 @@ export $(xargs < .env.local) && hcloud server rebuild whatphilipruns \
 
 ### Setup
 
-`Terminal`
-```sh
-sudo cp -r /home/philip/.terminfo/* /usr/share/terminfo/
-```
-
 `Setup`
 ```sh
 sudo bash setup.sh
 ```
 
-`Status`
+`Terminal`
 ```sh
-sudo su - podman -c "XDG_RUNTIME_DIR=/run/user/1001 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user status caddy.service postgres.service"
+sudo cp -r /home/philip/.terminfo/* /usr/share/terminfo/
 ```
 
 ### Troubleshooting
+
+### `sudo user`
 
 `WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!`<br>
 This has to be run after each rebuild
@@ -75,4 +72,26 @@ sudo cp -r /home/philip/.terminfo/* /usr/share/terminfo/
 `root access`
 ```sh
 sudo -i
+```
+
+`switch user` (default access)
+```sh
+sudo su - <username>
+```
+
+### `podman user`
+
+`switch user` (full access)
+```sh
+sudo machinectl shell podman@
+```
+
+`podman status overview`
+```sh
+  systemctl --user list-units --type=service --state=active
+```
+
+`podman status detail`
+```sh
+  systemctl --user status <name>.service
 ```
