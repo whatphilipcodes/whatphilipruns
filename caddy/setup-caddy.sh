@@ -2,20 +2,20 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+QUADLET_DIR="$HOME/.config/containers/systemd"
 
-mkdir -p /home/podman/caddy
+mkdir -p "$HOME/caddy"
+mkdir -p "$QUADLET_DIR"
 
-cp -f "$SCRIPT_DIR/Caddyfile" /home/podman/caddy/Caddyfile
+cp -f "$SCRIPT_DIR/Caddyfile" "$HOME/caddy/Caddyfile"
 
-su - podman -c "XDG_RUNTIME_DIR=/run/user/1001 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user stop caddy.service || true"
+systemctl --user stop caddy.service || true
 
-rm -f /etc/containers/systemd/users/1001/caddy.*
-rm -f /etc/containers/systemd/users/1001/caddy_*
-rm -f /etc/containers/systemd/users/1001/web.*
+rm -f "$QUADLET_DIR"/caddy.*
+rm -f "$QUADLET_DIR"/caddy_*
+rm -f "$QUADLET_DIR"/web.*
 
-cp -rf "$SCRIPT_DIR/systemd/"* /etc/containers/systemd/users/1001/
+cp -rf "$SCRIPT_DIR/systemd/"* "$QUADLET_DIR/"
 
-chown -R podman:podman /home/podman/caddy
-
-su - podman -c "XDG_RUNTIME_DIR=/run/user/1001 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user daemon-reload"
-su - podman -c "XDG_RUNTIME_DIR=/run/user/1001 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user start caddy.service"
+systemctl --user daemon-reload
+systemctl --user start caddy.service

@@ -7,15 +7,14 @@ apt-get update
 apt-get install -y podman gettext-base pwgen systemd-container htop
 
 id -u podman &>/dev/null || useradd -m -u 1001 -s /bin/bash podman
+PODMAN_UID=$(id -u podman)
 
 echo "net.ipv4.ip_unprivileged_port_start=80" > /etc/sysctl.d/99-podman-ports.conf
 sysctl --system
 
-mkdir -p /etc/containers/systemd/users/1001
-
-bash "$SCRIPT_DIR/postgres/setup-postgres.sh"
-bash "$SCRIPT_DIR/caddy/setup-caddy.sh"
-bash "$SCRIPT_DIR/timetracker/setup-timetracker.sh"
-
 loginctl enable-linger podman
-systemctl start user@1001.service
+systemctl start "user@${PODMAN_UID}.service"
+
+systemd-run --machine=podman@.host --user --wait --quiet /bin/bash "$SCRIPT_DIR/postgres/setup-postgres.sh"
+systemd-run --machine=podman@.host --user --wait --quiet /bin/bash "$SCRIPT_DIR/caddy/setup-caddy.sh"
+systemd-run --machine=podman@.host --user --wait --quiet /bin/bash "$SCRIPT_DIR/timetracker/setup-timetracker.sh"
