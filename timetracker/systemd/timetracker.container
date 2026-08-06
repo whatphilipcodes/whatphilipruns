@@ -8,12 +8,10 @@ ContainerName=timetracker
 Network=internal.network
 Network=web.network
 EnvironmentFile=/home/podman/timetracker/.env
-Environment=HOST=0.0.0.0
-Environment=PORT=3000
 Exec=node ./dist/server/entry.mjs
 
 [Service]
-ExecStartPre=/usr/bin/podman run --rm --network internal.network --env-file /home/podman/timetracker/.env.migration timetracker:latest pnpm run db:migrate
+ExecStartPre=/usr/bin/podman run --rm --network systemd-internal --env-file /home/podman/timetracker/.env.migration timetracker:latest pnpm run db:migrate
 
 [Install]
 WantedBy=default.target
