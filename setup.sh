@@ -4,7 +4,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 apt-get update
-apt-get install -y podman gettext-base pwgen systemd-container
+apt-get install -y podman gettext-base pwgen systemd-container htop
 
 id -u podman &>/dev/null || useradd -m -u 1001 -s /bin/bash podman
 
