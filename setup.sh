@@ -15,6 +15,17 @@ sysctl --system
 loginctl enable-linger podman
 systemctl start "user@${PODMAN_UID}.service"
 
-systemd-run --machine=podman@.host --user --wait --quiet /bin/bash "$SCRIPT_DIR/postgres/setup-postgres.sh"
-systemd-run --machine=podman@.host --user --wait --quiet /bin/bash "$SCRIPT_DIR/caddy/setup-caddy.sh"
-systemd-run --machine=podman@.host --user --wait --quiet /bin/bash "$SCRIPT_DIR/timetracker/setup-timetracker.sh"
+sleep 2
+
+TEMP_PODMAN_DIR="/home/podman/temp-whatphilipruns"
+rm -rf "$TEMP_PODMAN_DIR"
+cp -r "$SCRIPT_DIR" "$TEMP_PODMAN_DIR"
+chown -R podman:podman "$TEMP_PODMAN_DIR"
+
+systemd-run --machine=podman@.host --user --pipe --wait /bin/bash "$TEMP_PODMAN_DIR/postgres/setup-postgres.sh"
+systemd-run --machine=podman@.host --user --pipe --wait /bin/bash "$TEMP_PODMAN_DIR/caddy/setup-caddy.sh"
+systemd-run --machine=podman@.host --user --pipe --wait /bin/bash "$TEMP_PODMAN_DIR/timetracker/setup-timetracker.sh"
+
+rm -rf "$TEMP_PODMAN_DIR"
+
+echo "SETUP COMPLETE"
