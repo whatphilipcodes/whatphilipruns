@@ -5,13 +5,23 @@ After=postgres.service
 [Container]
 Image=timetracker:latest
 ContainerName=timetracker
+
 Network=internal.network
 Network=web.network
-EnvironmentFile=/home/podman/timetracker/.env
+
+Environment=DB_HOST=systemd-postgres
+Environment=DB_NAME=whatphilipstores_db
+Environment=DB_PORT=5432
+Environment=DB_SCHEMA=timetracking
+Environment=DB_USER_APP=timetracker
+Environment=DB_USER_MIGRATION=postgres
+
+Secret=timetracker_app_password,type=env,target=DB_PASSWORD_APP
+Secret=postgres_root_password,type=env,target=DB_PASSWORD_MIGRATION
 Exec=node ./dist/server/entry.mjs
 
 [Service]
-ExecStartPre=/usr/bin/podman run --rm --network systemd-internal --env-file /home/podman/timetracker/.env.migration timetracker:latest pnpm run db:migrate
+ExecStartPre=/usr/bin/podman run --rm --network systemd-internal --secret postgres_root_password,type=env,target=DB_PASSWORD_MIGRATION -e DB_HOST=systemd-postgres -e DB_NAME=whatphilipstores_db -e DB_PORT=5432 -e DB_SCHEMA=timetracking -e DB_USER_MIGRATION=postgres timetracker:latest pnpm exec tsx src/db/migrate.ts
 
 [Install]
 WantedBy=default.target

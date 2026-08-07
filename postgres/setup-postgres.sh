@@ -1,25 +1,22 @@
 #!/bin/bash
 set -e
 
-if [ "$(id -un)" != "podman" ]; then
-    echo "Error: This script must be run as the podman user." >&2
-    exit 1
-fi
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 QUADLET_DIR="$HOME/.config/containers/systemd"
 
 mkdir -p "$HOME/postgres"
 mkdir -p "$QUADLET_DIR"
 
-if [ ! -f "$HOME/postgres/.env" ]; then
-    POSTGRES_PASSWORD=$(pwgen -s 32 1)
-
-    cat << EOF > "$HOME/postgres/.env"
-POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-EOF
-    chmod 600 "$HOME/postgres/.env"
+if ! podman secret exists postgres_root_password; then
+    pwgen -s 32 1 | tr -d '\n' | podman secret create postgres_root_password -
 fi
+
+if ! podman secret exists timetracker_app_password; then
+    pwgen -s 32 1 | tr -d '\n' | podman secret create timetracker_app_password -
+fi
+
+cp -f "$SCRIPT_DIR/init-db.sh" "$HOME/postgres/init-db.sh"
+chmod +x "$HOME/postgres/init-db.sh"
 
 systemctl --user stop postgres.service || true
 
