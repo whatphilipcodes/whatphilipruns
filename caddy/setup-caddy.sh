@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+if [ "$(id -un)" != "podman" ]; then
+    echo "Error: This script must be run as the podman user." >&2
+    exit 1
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 QUADLET_DIR="$HOME/.config/containers/systemd"
 
