@@ -16,6 +16,13 @@ QUADLET_DIR="$HOME/.config/containers/systemd"
 mkdir -p "$HOME/timetracker"
 mkdir -p "$QUADLET_DIR"
 
+if ! podman secret exists timetracker_api_token; then
+    token=$(pwgen -s 32 1 | tr -d '\n')
+    printf "New API Access Token (Save this now, it will not be displayed again): %s\n" "$token" >&2
+    printf "%s" "$token" | podman secret create timetracker_api_token - > /dev/null
+    unset token
+fi
+
 systemctl --user stop timetracker.service || true
 
 rm -f "$QUADLET_DIR"/timetracker.*

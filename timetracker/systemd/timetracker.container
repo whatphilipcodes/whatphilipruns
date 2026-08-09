@@ -18,6 +18,8 @@ Environment=DB_USER_MIGRATION=postgres
 
 Secret=timetracker_app_password,type=env,target=DB_PASSWORD_APP
 Secret=postgres_root_password,type=env,target=DB_PASSWORD_MIGRATION
+Secret=timetracker_api_token,type=env,target=API_ACCESS_TOKEN
+
 Exec=node ./dist/server/entry.mjs
 
 [Service]
