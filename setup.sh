@@ -25,6 +25,7 @@ chown -R podman:podman "$TEMP_PODMAN_DIR"
 systemd-run --machine=podman@.host --user --pipe --wait /bin/bash "$TEMP_PODMAN_DIR/postgres/setup-postgres.sh"
 systemd-run --machine=podman@.host --user --pipe --wait /bin/bash "$TEMP_PODMAN_DIR/caddy/setup-caddy.sh"
 systemd-run --machine=podman@.host --user --pipe --wait /bin/bash "$TEMP_PODMAN_DIR/timetracker/setup-timetracker.sh"
+systemd-run --machine=podman@.host --user --pipe --wait /bin/bash "$TEMP_PODMAN_DIR/vectorizer/setup-vectorizer.sh"
 
 rm -rf "$TEMP_PODMAN_DIR"
 
