@@ -3,27 +3,24 @@ Description=timetracking app (whatphilipruns)
 After=postgres.service
 
 [Container]
-Image=timetracker:latest
+Image=ghcr.io/GITHUB_OWNER/timetracker:latest
+AutoUpdate=registry
 ContainerName=timetracker
-
 Network=internal.network
 Network=web.network
-
 Environment=DB_HOST=systemd-postgres
 Environment=DB_NAME=whatphilipstores_db
 Environment=DB_PORT=5432
 Environment=DB_SCHEMA=timetracking
 Environment=DB_USER_APP=timetracker
 Environment=DB_USER_MIGRATION=postgres
-
 Secret=timetracker_app_password,type=env,target=DB_PASSWORD_APP
 Secret=postgres_root_password,type=env,target=DB_PASSWORD_MIGRATION
 Secret=timetracker_api_token,type=env,target=API_ACCESS_TOKEN
-
 Exec=node ./dist/server/entry.mjs
 
 [Service]
-ExecStartPre=/usr/bin/podman run --rm --network systemd-internal --secret postgres_root_password,type=env,target=DB_PASSWORD_MIGRATION -e DB_HOST=systemd-postgres -e DB_NAME=whatphilipstores_db -e DB_PORT=5432 -e DB_SCHEMA=timetracking -e DB_USER_MIGRATION=postgres timetracker:latest pnpm exec tsx src/db/migrate.ts
+ExecStartPre=/usr/bin/podman run --rm --network systemd-internal --secret postgres_root_password,type=env,target=DB_PASSWORD_MIGRATION -e DB_HOST=systemd-postgres -e DB_NAME=whatphilipstores_db -e DB_PORT=5432 -e DB_SCHEMA=timetracking -e DB_USER_MIGRATION=postgres ghcr.io/GITHUB_OWNER/timetracker:latest pnpm exec tsx src/db/migrate.ts
 
 [Install]
 WantedBy=default.target

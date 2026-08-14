@@ -4,7 +4,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 apt-get update
-apt-get install -y podman gettext-base pwgen systemd-container htop gh
+apt-get install -y podman gettext-base pwgen systemd-container htop gh git
 
 id -u podman &>/dev/null || useradd -m -u 1001 -s /bin/bash podman
 PODMAN_UID=$(id -u podman)
@@ -14,19 +14,23 @@ sysctl --system
 
 loginctl enable-linger podman
 systemctl start "user@${PODMAN_UID}.service"
-
 sleep 2
 
-TEMP_PODMAN_DIR="/home/podman/temp-whatphilipruns"
-rm -rf "$TEMP_PODMAN_DIR"
-cp -r "$SCRIPT_DIR" "$TEMP_PODMAN_DIR"
-chown -R podman:podman "$TEMP_PODMAN_DIR"
+REPO_DIR="/home/podman/whatphilipruns"
+if [ ! -d "$REPO_DIR" ]; then
+    cp -r "$SCRIPT_DIR" "$REPO_DIR"
+    chown -R podman:podman "$REPO_DIR"
+fi
 
-systemd-run --machine=podman@.host --user --pipe --wait /bin/bash "$TEMP_PODMAN_DIR/postgres/setup-postgres.sh"
-systemd-run --machine=podman@.host --user --pipe --wait /bin/bash "$TEMP_PODMAN_DIR/caddy/setup-caddy.sh"
-systemd-run --machine=podman@.host --user --pipe --wait /bin/bash "$TEMP_PODMAN_DIR/timetracker/setup-timetracker.sh"
-systemd-run --machine=podman@.host --user --pipe --wait /bin/bash "$TEMP_PODMAN_DIR/vectorizer/setup-vectorizer.sh"
-
-rm -rf "$TEMP_PODMAN_DIR"
-
-echo "SETUP COMPLETE"
+systemd-run --machine=podman@.host --user --pipe --wait /bin/bash -c "
+    if ! podman secret exists postgres_root_password; then
+        pwgen -s 32 1 | tr -d '\n' | podman secret create postgres_root_password -
+    fi
+    if ! podman secret exists timetracker_app_password; then
+        pwgen -s 32 1 | tr -d '\n' | podman secret create timetracker_app_password -
+    fi
+    if ! podman secret exists timetracker_api_token; then
+        pwgen -s 32 1 | tr -d '\n' | podman secret create timetracker_api_token -
+    fi
+    bash /home/podman/whatphilipruns/scripts/deploy-quadlets.sh
+"

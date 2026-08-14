@@ -1,0 +1,61 @@
+services:
+  postgres:
+    image: docker.io/library/postgres:18-alpine
+    container_name: local-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: secure_super_password
+      DB_PASSWORD_APP: localdev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./config/postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:Z
+    networks:
+      - app-net
+
+  timetracker:
+    build:
+      context: ./apps/timetracker
+      target: dev
+    container_name: local-timetracker
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: whatphilipstores_db
+      DB_SCHEMA: timetracking
+      DB_USER_APP: timetracker
+      DB_PASSWORD_APP: localdev_password
+      DB_USER_MIGRATION: postgres
+      DB_PASSWORD_MIGRATION: secure_super_password
+      API_ACCESS_TOKEN: local_dev_token
+    volumes:
+      - ./apps/timetracker:/app:z
+      - /app/node_modules
+    depends_on:
+      - postgres
+    networks:
+      - app-net
+
+  vectorizer:
+    build:
+      context: ./apps/vectorizer
+      target: dev
+    container_name: local-vectorizer
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./apps/vectorizer:/usr/src/app:z
+      - /usr/src/app/target
+    networks:
+      - app-net
+
+volumes:
+  postgres_data:
+
+networks:
+  app-net:
+    driver: bridge

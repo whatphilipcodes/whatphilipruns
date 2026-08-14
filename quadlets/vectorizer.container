@@ -3,7 +3,8 @@ Description=sentence vectorizer service (whatphilipruns)
 After=network-online.target
 
 [Container]
-Image=vectorizer:latest
+Image=ghcr.io/GITHUB_OWNER/vectorizer:latest
+AutoUpdate=registry
 ContainerName=systemd-vectorizer
 Network=internal.network
 
