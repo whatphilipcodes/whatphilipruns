@@ -22,7 +22,7 @@ services:
       target: dev
     container_name: local-timetracker
     ports:
-      - "4321:4321"
+      - "3000:3000"
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
@@ -33,7 +33,6 @@ services:
       DB_USER_MIGRATION: postgres
       DB_PASSWORD_MIGRATION: secure_super_password
       API_ACCESS_TOKEN: local_dev_token
-      NPM_CONFIG_STORE_DIR: /app/node_modules/.pnpm-store
     volumes:
       - ./apps/timetracker:/app:z
       - timetracker_node_modules:/app/node_modules
