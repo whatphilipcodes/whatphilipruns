@@ -105,3 +105,13 @@ systemctl --user stop <name>.service
 ```sh
 systemctl --user start <name>.service
 ```
+
+
+# Local Dev
+
+using `podman-compose` (run from repo root dir)
+
+```sh
+podman compose up -d
+```
+Inside the `/apps` dir, you can then use `Shift+Cmd+P` to run `Attach to Running Container` and select the adjacent container. Alternatively you can rebuild the container directly in vscode (running as submodule that is child to this repo).

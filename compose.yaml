@@ -10,7 +10,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
       - ./config/postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:Z
     networks:
       - app-net
@@ -18,10 +18,11 @@ services:
   timetracker:
     build:
       context: ./apps/timetracker
+      dockerfile: Containerfile
       target: dev
     container_name: local-timetracker
     ports:
-      - "3000:3000"
+      - "4321:4321"
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
@@ -32,29 +33,32 @@ services:
       DB_USER_MIGRATION: postgres
       DB_PASSWORD_MIGRATION: secure_super_password
       API_ACCESS_TOKEN: local_dev_token
+      NPM_CONFIG_STORE_DIR: /app/node_modules/.pnpm-store
     volumes:
       - ./apps/timetracker:/app:z
-      - /app/node_modules
+      - timetracker_node_modules:/app/node_modules
     depends_on:
       - postgres
     networks:
       - app-net
 
-  vectorizer:
-    build:
-      context: ./apps/vectorizer
-      target: dev
-    container_name: local-vectorizer
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./apps/vectorizer:/usr/src/app:z
-      - /usr/src/app/target
-    networks:
-      - app-net
+  # vectorizer:
+  #   build:
+  #     context: ./apps/vectorizer
+  #     dockerfile: Containerfile
+  #     target: dev
+  #   container_name: local-vectorizer
+  #   ports:
+  #     - "8000:8000"
+  #   volumes:
+  #     - ./apps/vectorizer:/usr/src/app:z
+  #     - /usr/src/app/target
+  #   networks:
+  #     - app-net
 
 volumes:
   postgres_data:
+  timetracker_node_modules:
 
 networks:
   app-net:
