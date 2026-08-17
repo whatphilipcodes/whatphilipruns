@@ -38,17 +38,25 @@ write_files:
       X11Forwarding no
       AllowAgentForwarding no
       AuthorizedKeysFile .ssh/authorized_keys
-      AllowUsers philip
+      AllowUsers philip podman
   - path: /etc/sysctl.d/99-podman-ports.conf
     content: |
       net.ipv4.ip_unprivileged_port_start=80
 
 runcmd:
+  # ssh philip
   - mkdir -p /home/philip/.ssh
   - cp /root/.ssh/authorized_keys /home/philip/.ssh/authorized_keys
   - chown -R philip:philip /home/philip/.ssh
   - chmod 700 /home/philip/.ssh
   - chmod 600 /home/philip/.ssh/authorized_keys
+  # ssh podman
+  - mkdir -p /home/podman/.ssh
+  - cp /root/.ssh/authorized_keys /home/podman/.ssh/authorized_keys
+  - chown -R podman:podman /home/podman/.ssh
+  - chmod 700 /home/podman/.ssh
+  - chmod 600 /home/podman/.ssh/authorized_keys
+  # setup
   - dpkg-reconfigure -f noninteractive unattended-upgrades
   - printf "[sshd]\nenabled = true\nport = 2222\nbanaction = iptables-multiport\n" > /etc/fail2ban/jail.local
   - systemctl enable fail2ban
