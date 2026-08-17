@@ -1,16 +1,32 @@
 #!/bin/bash
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 QUADLET_DIR="$HOME/.config/containers/systemd"
-REPO_QUADLETS="$HOME/whatphilipruns/quadlets"
+REPO_QUADLETS="$REPO_ROOT/quadlets"
 
 mkdir -p "$QUADLET_DIR"
 
+SERVICES=()
+
 for file in "$REPO_QUADLETS"/*; do
     filename=$(basename "$file")
+    
+    if [[ "$filename" == _* ]]; then
+        continue
+    fi
+    
     ln -sfn "$file" "$QUADLET_DIR/$filename"
+    
+    if [[ "$filename" == *.container ]] || [[ "$filename" == *.kube ]] || [[ "$filename" == *.pod ]]; then
+        SERVICES+=("${filename%.*}.service")
+    fi
 done
 
 systemctl --user daemon-reload
 systemctl --user enable --now podman-auto-update.timer
-systemctl --user restart caddy.service postgres.service timetracker.service vectorizer.service
+
+if [ ${#SERVICES[@]} -gt 0 ]; then
+    systemctl --user restart "${SERVICES[@]}"
+fi
