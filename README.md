@@ -25,7 +25,7 @@ export $(xargs < .env.local) && hcloud server create \
   --type cx23 \
   --location fsn1 \
   --ssh-key "gerdes.philip@gmail.com" \
-  --user-data-from-file .init/cloudconf.yaml
+  --user-data-from-file ./cloudconf.yaml
 ```
 
 ## Rebuild
@@ -33,7 +33,7 @@ export $(xargs < .env.local) && hcloud server create \
 ```sh
 export $(xargs < .env.local) && hcloud server rebuild whatphilipruns \
   --image ubuntu-26.04 \
-  --user-data-from-file .init/cloudconf.yaml
+  --user-data-from-file ./cloudconf.yaml
 ```
 
 

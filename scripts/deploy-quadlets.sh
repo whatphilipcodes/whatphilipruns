@@ -1,10 +1,8 @@
 #!/bin/bash
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 QUADLET_DIR="$HOME/.config/containers/systemd"
-REPO_QUADLETS="$REPO_ROOT/quadlets"
+REPO_QUADLETS="$HOME/whatphilipruns/quadlets"
 
 mkdir -p "$QUADLET_DIR"
 
@@ -14,6 +12,7 @@ for file in "$REPO_QUADLETS"/*; do
     filename=$(basename "$file")
     
     if [[ "$filename" == _* ]]; then
+        echo "$filename is prefixed with an underscore. Skipping..."
         continue
     fi
     
