@@ -83,14 +83,22 @@ sudo su - <username>
 ```sh
 sudo machinectl shell <username>@
 ```
+
 `podman status overview`
 ```sh
 systemctl --user list-units --type=service --state=active
 ```
+
 `podman status detail`
 ```sh
 systemctl --user status <name>.service
 ```
+
+`podman service log`
+```sh
+journalctl --user -u <name>.service
+```
+
 `start service`
 ```sh
 systemctl --user start <name>.service

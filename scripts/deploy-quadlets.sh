@@ -30,7 +30,7 @@ systemctl --user daemon-reload
 systemctl --user enable --now podman-auto-update.timer
 
 if [ ${#SERVICES[@]} -gt 0 ]; then
-    systemctl --user restart "${SERVICES[@]}"
+   systemctl --user start "${SERVICES[@]}"
 fi
 
 systemctl --user list-units --type=service --state=active --no-pager
