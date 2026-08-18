@@ -46,7 +46,7 @@ ssh-keygen -R "[<server-ip>]:2222"
 
 `Setup`
 ```sh
-git clone https://github.com/whatphilipcodes/whatphilipruns && cd whatphilipruns && bash setup.sh
+git clone https://github.com/whatphilipcodes/whatphilipruns && bash whatphilipruns/setup.sh
 ```
 
 ## Local Dev
