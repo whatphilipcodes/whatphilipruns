@@ -33,4 +33,4 @@ if [ ${#SERVICES[@]} -gt 0 ]; then
     systemctl --user restart "${SERVICES[@]}"
 fi
 
-systemctl --user list-units --type=service --state=active
+systemctl --user list-units --type=service --state=active --no-pager
