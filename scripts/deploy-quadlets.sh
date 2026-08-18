@@ -5,6 +5,7 @@ QUADLET_DIR="$HOME/.config/containers/systemd"
 REPO_QUADLETS="$HOME/whatphilipruns/quadlets"
 
 mkdir -p "$QUADLET_DIR"
+find "$QUADLET_DIR" -type l -delete
 
 SERVICES=()
 
@@ -16,12 +17,14 @@ for file in "$REPO_QUADLETS"/*; do
         continue
     fi
     
-    ln -sfn "$file" "$QUADLET_DIR/$filename"
+    ln -sfnv "$file" "$QUADLET_DIR/$filename"
     
     if [[ "$filename" == *.container ]] || [[ "$filename" == *.kube ]] || [[ "$filename" == *.pod ]]; then
         SERVICES+=("${filename%.*}.service")
     fi
 done
+
+bash "$HOME/whatphilipruns/scripts/auth-ghcr.sh"
 
 systemctl --user daemon-reload
 systemctl --user enable --now podman-auto-update.timer

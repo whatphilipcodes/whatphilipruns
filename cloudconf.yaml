@@ -23,7 +23,6 @@ packages:
   - pwgen
   - systemd-container
   - htop
-  - gh
 
 write_files:
   - path: /etc/ssh/sshd_config.d/ssh-hardening.conf
