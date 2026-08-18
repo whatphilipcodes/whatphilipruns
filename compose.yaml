@@ -41,19 +41,19 @@ services:
     networks:
       - app-net
 
-  # vectorizer:
-  #   build:
-  #     context: ./apps/vectorizer
-  #     dockerfile: Containerfile
-  #     target: dev
-  #   container_name: local-vectorizer
-  #   ports:
-  #     - "8000:8000"
-  #   volumes:
-  #     - ./apps/vectorizer:/usr/src/app:z
-  #     - /usr/src/app/target
-  #   networks:
-  #     - app-net
+  vectorizer:
+    build:
+      context: ./apps/vectorizer
+      dockerfile: Containerfile
+      target: dev
+    container_name: local-vectorizer
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./apps/vectorizer:/usr/src/app:z
+      - /usr/src/app/target
+    networks:
+      - app-net
 
 volumes:
   postgres_data:
