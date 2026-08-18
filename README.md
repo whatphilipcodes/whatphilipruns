@@ -36,44 +36,42 @@ export $(xargs < .env.local) && hcloud server rebuild whatphilipruns \
   --user-data-from-file ./cloudconf.yaml
 ```
 
+`WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!`<br>
+This has to be run after every rebuild
+```sh
+ssh-keygen -R "[<server-ip>]:2222"
+```
 
 ## Setup
 
 `Setup`
 ```sh
-sudo bash setup.sh
+git clone https://github.com/whatphilipcodes/whatphilipruns && cd whatphilipruns && bash setup.sh
 ```
 
-`Terminal`
+## Local Dev
+
+using `podman-compose` (run from repo root dir)
+
 ```sh
-sudo cp -r /home/philip/.terminfo/* /usr/share/terminfo/
+podman compose up -d
 ```
+Inside the `/apps` dir, you can then use `Shift+Cmd+P` to run `Attach to Running Container` and select the adjacent container. Alternatively you can rebuild the container directly in vscode (running as submodule that is child to this repo).
 
 ## Troubleshooting
 
-### sudo user
-
-`WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!`<br>
-This has to be run after each rebuild
-```sh
-ssh-keygen -R "[<server-ip>]:2222"
-```
----
 `'xterm-ghostty': unknown terminal type.`<br>
-Some terminal emulations like Ghostty cache into which SSH connections they already injected their definitions. After a rebuild run this:
+Some terminal emulations like Ghostty cache into which SSH connections they already injected their definitions. After a rebuild run this on your local dev machine:
 ```sh
-ghostty +ssh-cache --remove="philip@<server-ip>"
+ghostty +ssh-cache --remove="<username>@<server-ip>"
 ```
-Afterwards rerun this on the server
-```sh
-sudo cp -r /home/philip/.terminfo/* /usr/share/terminfo/
-```
----
+
+## Useful Commands
+
 `root access`
 ```sh
 sudo -i
 ```
-
 `switch user` (default access)
 ```sh
 sudo su - <username>
@@ -83,35 +81,22 @@ sudo su - <username>
 
 `switch user` (full access)
 ```sh
-sudo machinectl shell podman@
+sudo machinectl shell <username>@
 ```
-
 `podman status overview`
 ```sh
 systemctl --user list-units --type=service --state=active
 ```
-
 `podman status detail`
 ```sh
 systemctl --user status <name>.service
+```
+`start service`
+```sh
+systemctl --user start <name>.service
 ```
 
 `stop service`
 ```sh
 systemctl --user stop <name>.service
 ```
-
-`start service`
-```sh
-systemctl --user start <name>.service
-```
-
-
-# Local Dev
-
-using `podman-compose` (run from repo root dir)
-
-```sh
-podman compose up -d
-```
-Inside the `/apps` dir, you can then use `Shift+Cmd+P` to run `Attach to Running Container` and select the adjacent container. Alternatively you can rebuild the container directly in vscode (running as submodule that is child to this repo).
