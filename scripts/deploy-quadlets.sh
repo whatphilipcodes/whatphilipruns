@@ -27,10 +27,11 @@ for file in "$REPO_QUADLETS"/*; do
 done
 
 systemctl --user daemon-reload
-systemctl --user enable --now podman-auto-update.timer
 
 if [ ${#SERVICES[@]} -gt 0 ]; then
-   systemctl --user start "${SERVICES[@]}"
+   systemctl --user restart "${SERVICES[@]}"
 fi
 
+podman auto-update
+systemctl --user enable --now podman-auto-update.timer
 systemctl --user list-units --type=service --state=active --no-pager
