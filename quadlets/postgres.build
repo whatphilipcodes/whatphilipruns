@@ -1,0 +1,7 @@
+[Unit]
+Description=custom postgres build image for whatphilipruns
+
+[Build]
+ImageTag=whatphilipstores-postgres:local
+File=%h/whatphilipruns/apps/postgres/Containerfile
+SetWorkingDirectory=%h/whatphilipruns/apps/postgres

@@ -1,6 +1,26 @@
 services:
+  adminer:
+    image: docker.io/library/adminer
+    container_name: adminer
+    ports:
+      - "8080:8080"
+    networks:
+      - app-net
+    environment:
+      ADMINER_DRIVER: pgsql
+      ADMINER_SERVER: postgres
+      ADMINER_USERNAME: postgres
+      ADMINER_PASSWORD: secure_super_password
+      ADMINER_DB: whatphilipstores_db
+    volumes:
+      - ./config/adminer/autologin.php:/var/www/html/plugins-enabled/autologin.php:z
+    depends_on:
+      - postgres
+  
   postgres:
-    image: docker.io/library/postgres:18-alpine
+    build:
+      context: ./apps/postgres
+      dockerfile: Containerfile
     container_name: local-postgres
     environment:
       POSTGRES_USER: postgres

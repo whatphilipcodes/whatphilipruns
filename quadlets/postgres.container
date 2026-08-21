@@ -2,7 +2,8 @@
 Description=whatphilipstores database (whatphilipruns)
 
 [Container]
-Image=docker.io/library/postgres:18-alpine
+PublishPort=127.0.0.1:5432:5432
+Image=postgres.build
 ContainerName=systemd-postgres
 Environment=POSTGRES_USER=postgres
 Environment=POSTGRES_DB=postgres
