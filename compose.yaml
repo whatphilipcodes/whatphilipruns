@@ -84,6 +84,7 @@ services:
       DB_USER: timetracker
       DB_PASSWORD: localdev_password
       API_ACCESS_TOKEN: local_dev_token
+      VEC_URL: http://local-vectorizer:8000
     volumes:
       - ./apps/timetracker:/app:z
       - timetracker_node_modules:/app/node_modules
