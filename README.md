@@ -31,7 +31,7 @@ export $(xargs < .env.local) && hcloud server create \
 ## Rebuild
 
 ```sh
-export $(xargs < .env.local) && hcloud server rebuild whatphilipruns \
+set -a && source .env.local && set +a && hcloud server rebuild whatphilipruns \
   --image ubuntu-26.04 \
   --user-data-from-file ./cloudconf.yaml
 ```
