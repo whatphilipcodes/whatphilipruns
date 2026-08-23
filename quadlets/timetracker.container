@@ -1,15 +1,12 @@
 [Unit]
 Description=timetracking app (whatphilipruns)
-After=timetracker_migrator.service
-Requires=timetracker_migrator.service
+After=timetracker-migrator.service
+Requires=timetracker-migrator.service
 
 [Container]
 Image=ghcr.io/whatphilipcodes/timetracker:latest
 AutoUpdate=registry
 ContainerName=timetracker
-
-Network=internal.network
-Network=web.network
 
 Environment=DB_HOST=systemd-postgres
 Environment=DB_NAME=whatphilipstores_db
@@ -20,6 +17,9 @@ Environment=VEC_URL=http://systemd-vectorizer:8000
 
 Secret=timetracker_app_password,type=env,target=DB_PASSWORD
 Secret=timetracker_api_token,type=env,target=API_ACCESS_TOKEN
+
+Network=internal.network
+Network=web.network
 
 [Install]
 WantedBy=default.target

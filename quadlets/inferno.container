@@ -1,0 +1,13 @@
+[Unit]
+Description=machine learning inference service (whatphilipruns)
+After=network-online.target
+
+[Container]
+Image=ghcr.io/whatphilipcodes/inferno:latest
+AutoUpdate=registry
+ContainerName=systemd-inferno
+
+Network=internal.network
+
+[Install]
+WantedBy=default.target

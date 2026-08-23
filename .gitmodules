@@ -1,6 +1,6 @@
 [submodule "apps/timetracker"]
 	path = apps/timetracker
 	url = https://github.com/whatphilipcodes/timetracker.git
-[submodule "apps/vectorizer"]
-	path = apps/vectorizer
-	url = https://github.com/whatphilipcodes/vectorizer.git
+[submodule "apps/inferno"]
+	path = apps/inferno
+	url = https://github.com/whatphilipcodes/inferno.git
