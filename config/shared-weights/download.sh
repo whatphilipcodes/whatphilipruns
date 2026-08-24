@@ -24,7 +24,8 @@ echo "=== Initializing Model Weights ==="
 echo "Downloading shared Weights..."
 
 download_if_missing "/weights/embedding/tokenizer.json" "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/tokenizer.json"
-download_if_missing "/weights/embedding/model.onnx" "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/onnx/model_quint8_avx2.onnx"
+download_if_missing "/weights/embedding/model_quint8_avx2.onnx" "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/onnx/model_quint8_avx2.onnx"
+
 download_if_missing "/weights/generation/tokenizer.json" "https://huggingface.co/HuggingFaceTB/SmolLM3-3B-ONNX/resolve/main/tokenizer.json"
 download_if_missing "/weights/generation/model_q4f16.onnx" "https://huggingface.co/HuggingFaceTB/SmolLM3-3B-ONNX/resolve/main/onnx/model_q4f16.onnx"
 download_if_missing "/weights/generation/model_q4f16.onnx_data" "https://huggingface.co/HuggingFaceTB/SmolLM3-3B-ONNX/resolve/main/onnx/model_q4f16.onnx_data"

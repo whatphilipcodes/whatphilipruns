@@ -115,7 +115,8 @@ services:
     ports:
       - "8000:8000"
     environment:
-      MODEL_DIR: /weights
+      MODEL_EMB: /weights/embedding/model_quint8_avx2.onnx
+      MODEL_GEN: /weights/generation/model_q4f16.onnx
     volumes:
       - ./apps/inferno:/usr/src/app:z
       - /usr/src/app/target
