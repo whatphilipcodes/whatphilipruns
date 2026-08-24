@@ -1,12 +1,14 @@
 [Unit]
 Description=machine learning inference service (whatphilipruns)
-After=network-online.target
+After=network-online.target init-shared-models.service
+Requires=init-shared-models.service
 
 [Container]
 Image=ghcr.io/whatphilipcodes/inferno:latest
 AutoUpdate=registry
 ContainerName=systemd-inferno
-
+Environment=MODEL_DIR=/weights
+Volume=shared-weights.volume:/weights:z
 Network=internal.network
 
 [Install]

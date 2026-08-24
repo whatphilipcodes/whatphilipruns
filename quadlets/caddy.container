@@ -10,7 +10,7 @@ Volume=caddy-data.volume:/data:Z
 Volume=caddy-config.volume:/config:Z
 Volume=%h/whatphilipruns/config/caddy/Caddyfile:/etc/caddy/Caddyfile:Z
 
-HealthCmd=wget -q -O /dev/null http://127.0.0.1:2019/config/
+HealthCmd=wget -q -O /dev/null http://127.0.0.1:2019/config/ || exit 1
 
 Network=web.network
 PublishPort=80:80

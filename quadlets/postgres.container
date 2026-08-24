@@ -14,7 +14,7 @@ Secret=timetracker_app_password,type=env,target=DB_PASSWORD_APP
 Volume=whatphilipstores.volume:/var/lib/postgresql
 Volume=%h/whatphilipruns/config/postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:Z
 
-HealthCmd=pg_isready -U postgres
+HealthCmd=pg_isready -U postgres || exit 1
 
 Network=internal.network
 PublishPort=127.0.0.1:5432:5432
