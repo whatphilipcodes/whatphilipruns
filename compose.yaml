@@ -42,7 +42,7 @@ services:
       - app-net
 
   timetracker-migrator:
-    image: timetracker-dev-image
+    image: whatphilipruns-timetracker
     pull_policy: build
     build:
       context: ./apps/timetracker
@@ -67,7 +67,7 @@ services:
         condition: service_healthy
 
   timetracker:
-    image: timetracker-dev-image
+    image: whatphilipruns-timetracker
     pull_policy: build
     build:
       context: ./apps/timetracker
@@ -84,7 +84,7 @@ services:
       DB_USER: timetracker
       DB_PASSWORD: localdev_password
       API_ACCESS_TOKEN: local_dev_token
-      VEC_URL: http://local-vectorizer:8000
+      VEC_URL: http://local-inferno:8000
     volumes:
       - ./apps/timetracker:/app:z
       - timetracker_node_modules:/app/node_modules
@@ -94,23 +94,42 @@ services:
       timetracker-migrator:
         condition: service_completed_successfully
 
-  vectorizer:
-    build:
-      context: ./apps/vectorizer
-      dockerfile: Containerfile
-      target: dev
-    container_name: local-vectorizer
-    ports:
-      - "8000:8000"
+  init-shared-models:
+    image: curlimages/curl:latest
+    container_name: local-init-shared-models
+    user: root
+    tty: true
+    entrypoint: ["/bin/sh", "/scripts/download.sh"]
     volumes:
-      - ./apps/vectorizer:/usr/src/app:z
-      - /usr/src/app/target
+      - ./config/shared-weights/download.sh:/scripts/download.sh:ro,z
+      - shared-weights:/weights:z
     networks:
       - app-net
+
+  inferno:
+    build:
+      context: ./apps/inferno
+      dockerfile: Containerfile
+      target: dev
+    container_name: local-inferno
+    ports:
+      - "8000:8000"
+    environment:
+      MODEL_DIR: /weights
+    volumes:
+      - ./apps/inferno:/usr/src/app:z
+      - /usr/src/app/target
+      - shared-weights:/weights:z
+    networks:
+      - app-net
+    depends_on:
+      init-shared-models:
+        condition: service_completed_successfully
 
 volumes:
   postgres_data:
   timetracker_node_modules:
+  shared-weights:
 
 networks:
   app-net:
