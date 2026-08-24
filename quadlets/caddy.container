@@ -11,10 +11,6 @@ Volume=caddy-config.volume:/config:Z
 Volume=%h/whatphilipruns/config/caddy/Caddyfile:/etc/caddy/Caddyfile:Z
 
 HealthCmd=wget -q -O /dev/null http://127.0.0.1:2019/config/
-HealthInterval=15s
-HealthTimeout=5s
-HealthRetries=3
-HealthStartPeriod=10s
 
 Network=web.network
 PublishPort=80:80

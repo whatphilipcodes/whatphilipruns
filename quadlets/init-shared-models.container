@@ -1,0 +1,20 @@
+[Unit]
+Description=Initialize shared model weights
+After=network-online.target
+
+[Container]
+Image=docker.io/curlimages/curl:latest
+ContainerName=init-shared-models
+
+User=root
+
+Volume=/path/to/config/shared-weights/download.sh:/scripts/download.sh:ro,z
+Volume=shared-weights.volume:/weights:z
+
+Network=app-net.network
+
+Entrypoint=/bin/sh
+Exec=/scripts/download.sh
+
+[Install]
+WantedBy=multi-user.target default.target
