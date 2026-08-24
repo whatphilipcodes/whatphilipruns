@@ -7,8 +7,8 @@ Requires=init-shared-models.service
 Image=ghcr.io/whatphilipcodes/inferno:latest
 AutoUpdate=registry
 ContainerName=systemd-inferno
-Environment=MODEL_EMB:/weights/embedding/model_quint8_avx2.onnx
-Environment=MODEL_GEN:/weights/generation/model_q4f16.onnx
+Environment=MODEL_EMB=/weights/embedding/model_quint8_avx2.onnx
+Environment=MODEL_GEN=/weights/generation/model_q4f16.onnx
 
 Volume=shared-weights.volume:/weights:z
 Network=internal.network

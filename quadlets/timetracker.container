@@ -13,7 +13,7 @@ Environment=DB_NAME=whatphilipstores_db
 Environment=DB_PORT=5432
 Environment=DB_SCHEMA=timetracking
 Environment=DB_USER=timetracker
-Environment=VEC_URL=http://systemd-vectorizer:8000
+Environment=INF_URL=http://systemd-inferno:8000
 
 Secret=timetracker_app_password,type=env,target=DB_PASSWORD
 Secret=timetracker_api_token,type=env,target=API_ACCESS_TOKEN
