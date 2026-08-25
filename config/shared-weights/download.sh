@@ -26,7 +26,9 @@ echo "Downloading shared Weights..."
 download_if_missing "/weights/embedding/tokenizer.json" "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/tokenizer.json"
 download_if_missing "/weights/embedding/model_quint8_avx2.onnx" "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/onnx/model_quint8_avx2.onnx"
 
+download_if_missing "/weights/generation/tokenizer_config.json" "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct/resolve/main/tokenizer_config.json"
 download_if_missing "/weights/generation/tokenizer.json" "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct/resolve/main/tokenizer.json"
+download_if_missing "/weights/generation/config.json" "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct/resolve/main/config.json"
 download_if_missing "/weights/generation/model_q4.onnx" "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct/resolve/main/onnx/model_q4.onnx"
 
 echo "=== Cleaning Up Orphaned Files ==="
