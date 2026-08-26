@@ -22,7 +22,7 @@ packages:
   - gettext-base
   - pwgen
   - systemd-container
-  - htop
+  - btop
 
 write_files:
   - path: /etc/ssh/sshd_config.d/ssh-hardening.conf
