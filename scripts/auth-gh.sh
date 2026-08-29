@@ -5,14 +5,36 @@ set +x
 CRED_FILE="$HOME/.git-credentials"
 
 check_setup() {
-    if [ -f "$CRED_FILE" ] && grep -q "github.com" "$CRED_FILE"; then
-        if git config --global credential.helper | grep -q "store"; then
-            if git config --global user.name >/dev/null 2>&1 && git config --global user.email >/dev/null 2>&1; then
-                return 0
-            fi
-        fi
+    if ! git config --global user.name >/dev/null 2>&1 || ! git config --global user.email >/dev/null 2>&1; then
+        return 1
     fi
-    return 1
+
+    if ! git config --global credential.helper | grep -q "store"; then
+        return 1
+    fi
+
+    local git_creds
+    git_creds=$(printf "protocol=https\nhost=github.com\n" | git credential fill 2>/dev/null)
+
+    if [ -z "$git_creds" ]; then
+        return 1
+    fi
+
+    local pat
+    pat=$(printf "%s\n" "$git_creds" | grep '^password=' | cut -d'=' -f2-)
+
+    if [ -z "$pat" ]; then
+        return 1
+    fi
+
+    local http_code
+    http_code=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $pat" https://api.github.com/user)
+
+    if [ "$http_code" -ne 200 ]; then
+        return 1
+    fi
+
+    return 0
 }
 
 if check_setup; then
