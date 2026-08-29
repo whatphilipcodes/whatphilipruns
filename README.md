@@ -19,7 +19,7 @@ HCLOUD_TOKEN="RW_TOKEN_HERE"
 ## Creation
 
 ```sh
-export $(xargs < .env.local) && hcloud server create \
+set -a && source .env.local && set +a && hcloud server create \
   --name whatphilipruns \
   --image ubuntu-26.04 \
   --type cx23 \
