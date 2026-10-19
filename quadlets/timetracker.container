@@ -11,12 +11,15 @@ ContainerName=timetracker
 Environment=DB_HOST=systemd-postgres
 Environment=DB_NAME=whatphilipstores_db
 Environment=DB_PORT=5432
-Environment=DB_SCHEMA=timetracking
 Environment=DB_USER=timetracker
 Environment=INF_URL=http://systemd-inferno:8000
+Environment=AUTH_USERNAME=philip
 
 Secret=timetracker_app_password,type=env,target=DB_PASSWORD
 Secret=timetracker_api_token,type=env,target=API_ACCESS_TOKEN
+# scrypt hash of the login password (never the password itself). Create with:
+#   podman secret create timetracker_auth_password_hash - <<< "$(… pnpm run auth:hash-password '<pw>')"
+Secret=timetracker_auth_password_hash,type=env,target=AUTH_PASSWORD_HASH
 
 Network=internal.network
 Network=web.network

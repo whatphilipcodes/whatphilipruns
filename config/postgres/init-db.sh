@@ -5,7 +5,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     DO \$\$
     BEGIN
         IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'timetracker') THEN
-            CREATE USER timetracker WITH ENCRYPTED PASSWORD '$DB_PASSWORD_APP';
+            CREATE USER timetracker WITH ENCRYPTED PASSWORD '$DB_PASSWORD_APP_TIMETRACKER';
         END IF;
     END
     \$\$;

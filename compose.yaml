@@ -1,11 +1,29 @@
+x-base-config: &base
+  tty: true
+  networks:
+    - app_net
+
+networks:
+  app_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  shared_model_weights:
+  dev_time_node_modules:
+  dev_time_codium:
+  dev_time_vscode:
+  dev_inferno_codium:
+  dev_inferno_vscode:
+  dev_inferno_target:
+
 services:
   adminer:
-    image: docker.io/library/adminer
+    <<: *base
     container_name: adminer
+    image: docker.io/library/adminer
     ports:
       - "8080:8080"
-    networks:
-      - app-net
     environment:
       ADMINER_DRIVER: pgsql
       ADMINER_SERVER: postgres
@@ -19,119 +37,115 @@ services:
         condition: service_healthy
   
   postgres:
+    <<: *base
+    container_name: dev_postgres
+    image: whatphilipruns_postgres
+    pull_policy: build
     build:
       context: ./apps/postgres
       dockerfile: Containerfile
-    container_name: local-postgres
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: postgres
       POSTGRES_PASSWORD: secure_super_password
-      DB_PASSWORD_APP: localdev_password
+      DB_PASSWORD_APP_TIMETRACKER: localdev_password
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
       - ./config/postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:Z
-    networks:
-      - app-net
 
-  timetracker-migrator:
-    image: whatphilipruns-timetracker
+  time_migrator:
+    <<: *base
+    container_name: dev_time_migrator
+    image: whatphilipruns_time
     pull_policy: build
     build:
       context: ./apps/timetracker
       dockerfile: Containerfile
       target: dev
-    container_name: local-timetracker-migrator
     command: ["sh", "-c", "pnpm run build:scripts && node bin/migrate.mjs"]
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: whatphilipstores_db
-      DB_SCHEMA: timetracking
       DB_USER: postgres
       DB_PASSWORD: secure_super_password
     volumes:
-      - ./apps/timetracker:/app:z
-      - timetracker_node_modules:/app/node_modules
-    networks:
-      - app-net
+      - ./apps/timetracker:/workspace/apps/timetracker:z
+      - dev_time_node_modules:/workspace/apps/timetracker/node_modules
     depends_on:
       postgres:
         condition: service_healthy
 
-  timetracker:
-    image: whatphilipruns-timetracker
+  time:
+    <<: *base
+    container_name: dev_time
+    image: whatphilipruns_time
     pull_policy: build
     build:
       context: ./apps/timetracker
       dockerfile: Containerfile
       target: dev
-    container_name: local-timetracker
     ports:
       - "3000:3000"
+      - "127.0.0.1:2222:22"
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: whatphilipstores_db
-      DB_SCHEMA: timetracking
-      DB_USER: timetracker
-      DB_PASSWORD: localdev_password
+      DB_USER: postgres
+      DB_PASSWORD: secure_super_password
       API_ACCESS_TOKEN: local_dev_token
-      INF_URL: http://local-inferno:8000
+      INF_URL: http://dev_inferno:8000
+      AUTH_USERNAME: philip
+      AUTH_PASSWORD_HASH: scrypt$16384$8$1$7c86a55c1f89e677b1324c806a2daee0$70df5698ba58e7823c6a1bd84d8564c7daceb78a2247eea4d1b2f7deb9b41907a6ed9f2a86f909dfee6c0e5c5bb5c523af92a0d02d26b6cb6627429f2b9ceaff # password: localdev
+      CHOKIDAR_USEPOLLING: "1"
+      CHOKIDAR_INTERVAL: "500"
     volumes:
-      - ./apps/timetracker:/app:z
-      - timetracker_node_modules:/app/node_modules
-    networks:
-      - app-net
+      - ./apps/timetracker:/workspace/apps/timetracker:z
+      - ./.git/modules/apps/timetracker:/workspace/.git/modules/apps/timetracker:z
+      - dev_time_node_modules:/workspace/apps/timetracker/node_modules
+      - dev_time_codium:/root/.vscodium-server
+      - dev_time_vscode:/root/.vscode-server
     depends_on:
-      timetracker-migrator:
+      time_migrator:
         condition: service_completed_successfully
-
-  init-shared-models:
-    image: curlimages/curl:latest
-    container_name: local-init-shared-models
-    user: root
-    tty: true
-    entrypoint: ["/bin/sh", "/scripts/download.sh"]
-    volumes:
-      - ./config/shared-weights/download.sh:/scripts/download.sh:ro,z
-      - shared-weights:/weights:z
-    networks:
-      - app-net
+      inferno:
+        condition: service_healthy
 
   inferno:
+    <<: *base
+    container_name: dev_inferno
+    image: whatphilipruns_inferno
+    pull_policy: build
     build:
       context: ./apps/inferno
       dockerfile: Containerfile
       target: dev
-    container_name: local-inferno
     ports:
       - "8000:8000"
+      - "127.0.0.1:2223:22"
+    command: ["cargo", "watch", "--poll", "-x", "run"]
     environment:
       MODEL_EMB: /weights/embedding/model_quint8_avx2.onnx
       MODEL_GEN: /weights/generation/model_q4.onnx
     volumes:
-      - ./apps/inferno:/usr/src/app:z
-      - /usr/src/app/target
-      - shared-weights:/weights:z
-    networks:
-      - app-net
+      - ./apps/inferno:/workspace/apps/inferno:z
+      - ./.git/modules/apps/inferno:/workspace/.git/modules/apps/inferno:z
+      - dev_inferno_target:/workspace/apps/inferno/target
+      - shared_model_weights:/weights
+      - dev_inferno_codium:/root/.vscodium-server
+      - dev_inferno_vscode:/root/.vscode-server
     depends_on:
-      init-shared-models:
+      init_shared_models:
         condition: service_completed_successfully
 
-volumes:
-  postgres_data:
-  timetracker_node_modules:
-  shared-weights:
-
-networks:
-  app-net:
-    driver: bridge
+  init_shared_models:
+    container_name: dev_init_shared_models
+    image: curlimages/curl:latest
+    user: root
+    entrypoint: ["/bin/sh", "/scripts/download.sh"]
+    volumes:
+      - ./config/shared-weights/download.sh:/scripts/download.sh:ro,z
+      - shared_model_weights:/weights

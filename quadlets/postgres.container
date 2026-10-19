@@ -9,7 +9,7 @@ Environment=POSTGRES_USER=postgres
 Environment=POSTGRES_DB=postgres
 
 Secret=postgres_root_password,type=env,target=POSTGRES_PASSWORD
-Secret=timetracker_app_password,type=env,target=DB_PASSWORD_APP
+Secret=timetracker_app_password,type=env,target=DB_PASSWORD_APP_TIMETRACKER
 
 Volume=whatphilipstores.volume:/var/lib/postgresql
 Volume=%h/whatphilipruns/config/postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:Z

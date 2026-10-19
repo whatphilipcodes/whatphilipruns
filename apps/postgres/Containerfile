@@ -1,5 +1,4 @@
 FROM docker.io/library/postgres:18-alpine
-
 RUN apk add --no-cache --virtual .build-deps \
     build-base \
     git \
@@ -12,3 +11,5 @@ RUN apk add --no-cache --virtual .build-deps \
     && cd .. \
     && rm -rf pgvector \
     && apk del .build-deps
+HEALTHCHECK --interval=5s --timeout=5s --start-period=5s --retries=5 \
+  CMD ["sh", "-c", "pg_isready -U postgres -d postgres"]
