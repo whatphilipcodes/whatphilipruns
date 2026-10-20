@@ -1,3 +1,14 @@
+x-git-env: &git-env
+  GIT_CONFIG_COUNT: "4"
+  GIT_CONFIG_KEY_0: user.name
+  GIT_CONFIG_VALUE_0: ${GIT_USER_NAME:?set GIT_USER_NAME in .env}
+  GIT_CONFIG_KEY_1: user.email
+  GIT_CONFIG_VALUE_1: ${GIT_USER_EMAIL:?set GIT_USER_EMAIL in .env}
+  GIT_CONFIG_KEY_2: pull.rebase
+  GIT_CONFIG_VALUE_2: "true"
+  GIT_CONFIG_KEY_3: pull.autostash
+  GIT_CONFIG_VALUE_3: "true"
+
 x-base-config: &base
   tty: true
   networks:
@@ -91,6 +102,7 @@ services:
       - "3000:3000"
       - "127.0.0.1:2222:22"
     environment:
+      <<: *git-env
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: whatphilipstores_db
@@ -103,8 +115,8 @@ services:
       CHOKIDAR_USEPOLLING: "1"
       CHOKIDAR_INTERVAL: "500"
     volumes:
-      - ./apps/timetracker:/workspace/apps/timetracker:z
       - ./.git/modules/apps/timetracker:/workspace/.git/modules/apps/timetracker:z
+      - ./apps/timetracker:/workspace/apps/timetracker:z
       - dev_time_node_modules:/workspace/apps/timetracker/node_modules
       - dev_time_codium:/root/.vscodium-server
       - dev_time_vscode:/root/.vscode-server
@@ -128,11 +140,12 @@ services:
       - "127.0.0.1:2223:22"
     command: ["cargo", "watch", "--poll", "-x", "run"]
     environment:
+      <<: *git-env
       MODEL_EMB: /weights/embedding/model_quint8_avx2.onnx
       MODEL_GEN: /weights/generation/model_q4.onnx
     volumes:
-      - ./apps/inferno:/workspace/apps/inferno:z
       - ./.git/modules/apps/inferno:/workspace/.git/modules/apps/inferno:z
+      - ./apps/inferno:/workspace/apps/inferno:z
       - dev_inferno_target:/workspace/apps/inferno/target
       - shared_model_weights:/weights
       - dev_inferno_codium:/root/.vscodium-server
