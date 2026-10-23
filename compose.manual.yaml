@@ -1,0 +1,9 @@
+services:
+  time:
+    command: ["sleep", "infinity"]
+    depends_on: !override
+      time_migrator:
+        condition: service_completed_successfully
+
+  inferno:
+    command: ["sleep", "infinity"]

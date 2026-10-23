@@ -51,12 +51,33 @@ git clone https://github.com/whatphilipcodes/whatphilipruns && bash whatphilipru
 
 ## Local Dev
 
-using `podman-compose` (run from repo root dir)
+1. Spin up the infrastructure locally using `podman-compose` (run from repo root dir).
+    ```sh
+    podman compose up -d
+    ```
+    If you want to manage the dev servers manually from inside the containers use the manual override:
+    ```sh
+    podman compose -f compose.yaml -f compose.manual.yaml up -d
+    ```
 
-```sh
-podman compose up -d
-```
-Inside the `/apps` dir, you can then use `Shift+Cmd+P` to run `Attach to Running Container` and select the adjacent container. Alternatively you can rebuild the container directly in vscode (running as submodule that is child to this repo).
+2. Add this to your local .ssh config:
+    ```
+    Host time-dev inferno-dev
+        HostName localhost
+        User root
+        PreferredAuthentications none
+        StrictHostKeyChecking no
+        UserKnownHostsFile /dev/null
+        LogLevel ERROR
+
+    Host time-dev
+        Port 2222
+
+    Host inferno-dev
+        Port 2223
+    ```
+
+3. Connect to the dev container via SSH.
 
 ## Troubleshooting
 
