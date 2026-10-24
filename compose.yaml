@@ -24,9 +24,11 @@ volumes:
   dev_time_node_modules:
   dev_time_codium:
   dev_time_vscode:
+  dev_time_ssh:
   dev_inferno_codium:
   dev_inferno_vscode:
   dev_inferno_target:
+  dev_inferno_ssh:
 
 services:
   adminer:
@@ -120,6 +122,7 @@ services:
       - dev_time_node_modules:/workspace/apps/timetracker/node_modules
       - dev_time_codium:/root/.vscodium-server
       - dev_time_vscode:/root/.vscode-server
+      - dev_time_ssh:/etc/ssh
     depends_on:
       time_migrator:
         condition: service_completed_successfully
@@ -150,6 +153,7 @@ services:
       - shared_model_weights:/weights
       - dev_inferno_codium:/root/.vscodium-server
       - dev_inferno_vscode:/root/.vscode-server
+      - dev_inferno_ssh:/etc/ssh
     depends_on:
       init_shared_models:
         condition: service_completed_successfully

@@ -66,9 +66,7 @@ git clone https://github.com/whatphilipcodes/whatphilipruns && bash whatphilipru
         HostName localhost
         User root
         PreferredAuthentications none
-        StrictHostKeyChecking no
-        UserKnownHostsFile /dev/null
-        LogLevel ERROR
+        UserKnownHostsFile ~/.ssh/known_devcontainers
 
     Host time-dev
         Port 2222
