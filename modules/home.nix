@@ -5,7 +5,6 @@
 
     programs.git = {
       enable = true;
-
       settings = {
         init.defaultBranch = "main";
         pull.rebase = true;
@@ -15,6 +14,16 @@
 
         credential.helper = "store";
         credential."https://github.com".username = secrets.GH_USERNAME;
+      };
+    };
+  };
+  home-manager.users.root = {
+    home.stateVersion = "26.05";
+
+    programs.git = {
+      enable = true;
+      settings = {
+        credential.helper = "store";
       };
     };
   };

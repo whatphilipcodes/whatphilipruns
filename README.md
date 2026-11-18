@@ -16,10 +16,7 @@ Host wpr
 ### NixOS Rebuild (Soft)
 Run this upon config changes to update the VPS instance:
 ```sh
-NIX_SSHOPTS="-p 2222" nix run --inputs-from . nixpkgs#nixos-rebuild-ng -- switch --sudo \
-   --flake "path:.#whatphilipruns" \
-   --build-host philip@wpr \
-   --target-host philip@wpr
+sudo nixos-rebuild switch
 ```
 
 ### NixOS Test Build (Dry Run)
@@ -27,18 +24,13 @@ NIX_SSHOPTS="-p 2222" nix run --inputs-from . nixpkgs#nixos-rebuild-ng -- switch
 `dry-build`
 Evaluate the config and list what would be built.
 ```sh
-NIX_SSHOPTS="-p 2222" nix run --inputs-from . nixpkgs#nixos-rebuild-ng -- dry-build \
-   --flake "path:.#whatphilipruns" \
-   --build-host philip@wpr
+sudo nixos-rebuild build
 ```
 
 `dry-activate`
 Run the full build but not apply it yet.
 ```sh
-NIX_SSHOPTS="-p 2222" nix run --inputs-from . nixpkgs#nixos-rebuild-ng -- dry-activate --sudo \
-   --flake "path:.#whatphilipruns" \
-   --build-host philip@wpr \
-   --target-host philip@wpr
+sudo nixos-rebuild test
 ```
 
 ## Local Dev
