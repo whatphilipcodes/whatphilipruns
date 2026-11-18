@@ -19,6 +19,10 @@
     quadlet-nix = {
       url = "github:mirkolenz/quadlet-nix";
     };
+
+    secrets = {
+      url = "git+ssh://git@github.com/your-org/nix-secrets";
+    };
   };
 
   outputs =
@@ -27,15 +31,23 @@
       disko,
       home-manager,
       quadlet-nix,
+      secrets,
       ...
     }:
     {
-      nixosConfigurations.whatphilipruns = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.wpr = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
+        specialArgs.secrets = secrets.lib.secrets;
         modules = [
           disko.nixosModules.disko
-          home-manager.nixosModules.home-manager
           quadlet-nix.nixosModules.quadlet
+          (
+            { secrets, ... }:
+            {
+              imports = [ home-manager.nixosModules.home-manager ];
+              home-manager.extraSpecialArgs = { inherit secrets; };
+            }
+          )
           ./modules/base.nix
           ./modules/hetzner.nix
           ./modules/disk.nix

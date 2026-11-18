@@ -2,5 +2,5 @@
 !.env.example
 .DS_Store
 
-*secret*
+# *secret*
 *cache*

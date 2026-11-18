@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
-# Orchestrator: runs the steps in scripts/ in order.
-#   host:      preflight -> build image -> run container -> verify admin login -> deploy repo
-#   container: scripts/container-provision.sh (hcloud + nixos-anywhere)
-#   remote:    scripts/remote-setup.sh (copied along with the repo, run on the server)
+
 set -euo pipefail
 cd "$(dirname "$0")"
-# shellcheck source=scripts/lib.sh
 . scripts/lib.sh
 
 trap 'rm -f "$RESULT_FILE"' EXIT

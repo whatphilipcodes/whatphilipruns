@@ -14,6 +14,8 @@
     programs.nix-ld.enable = true; # fixes vscode-server issue
     environment.systemPackages = with pkgs; [
       ghostty.terminfo
+      nixd
+      nixfmt
       git
       curl
       gettext

@@ -1,7 +1,4 @@
-{ modulesPath, ... }:
-let
-  secrets = import ../secrets.nix;
-in
+{ modulesPath, secrets, ... }:
 {
   # ── Virtualization ─────────────────────────────────────────────────────────
   # Hetzner Cloud servers are QEMU/KVM guests.
@@ -43,7 +40,7 @@ in
     matchConfig.Name = "en*";
     networkConfig.DHCP = "ipv4";
     # The /64 shown under Networking in the Hetzner Console; the server uses ::1.
-    address = [ "${secrets.HETZNER_IPV6_ADDRESS}/64" ];
+    address = [ "${secrets.HETZNER_WPR_IPV6_ADDRESS}/64" ];
     routes = [ { Gateway = "fe80::1"; } ];
   };
 }

@@ -1,7 +1,4 @@
-{ ... }:
-let
-  secrets = import ../secrets.nix;
-in
+{ secrets, ... }:
 {
   # ---- users ----
   users.users.philip = {

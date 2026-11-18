@@ -1,6 +1,4 @@
-let
-  secrets = import ../secrets.nix;
-in
+{ secrets, ... }:
 {
   home-manager.users.philip = {
     home.stateVersion = "26.05";

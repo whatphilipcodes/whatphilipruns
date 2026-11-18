@@ -13,7 +13,7 @@ ADMIN_PORT=2222 # firewall expects SSH over 2222
 SSH_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 -o LogLevel=ERROR)
 
 # ── Host-side tooling (overridable from the environment) ─────────────────────
-REMOTE_REPO_DIR=${REMOTE_REPO_DIR:-nixos-config} # relative to $ADMIN_USER's home
+REMOTE_REPO_DIR=${REMOTE_REPO_DIR:-whatphilipruns} # relative to $ADMIN_USER's home
 IMAGE_TAG=${IMAGE_TAG:-localhost/hcloud-nixos-provision:latest}
 CONTAINERFILE=${CONTAINERFILE:-$ROOT/Containerfile}
 NIX_IMAGE=${NIX_IMAGE:-docker.io/nixos/nix:latest}
