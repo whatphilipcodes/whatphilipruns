@@ -12,13 +12,12 @@
     };
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-26.05";
+      url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     quadlet-nix = {
-      url = "github:mirkolenz/quadlet-nix/v1.9.1";
-      inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:mirkolenz/quadlet-nix";
     };
   };
 

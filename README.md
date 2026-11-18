@@ -1,52 +1,44 @@
-# Server Init
+# Remote VPS Setup
 
-## Prerequisites
-
-`hcloud cli`
+### Setup / Rebuild
+Make sure you created `secrets.nix` and `.env`, both populated with your data. You can find the required structures for both in `secrets.example.nix` and `.env.example`. Once that is set up, you can run the `init.sh` script to instantiate the VPS on Hetzner's infra:
 ```sh
-brew install hcloud
-```
-or
-```sh
-scoop install main/hcloud
-```
-and
-```sh
-# .env
-HCLOUD_TOKEN="RW_TOKEN_HERE"
+bash init.sh
 ```
 
-## Creation
-
-```sh
-set -a && source .env && set +a && hcloud server create \
-  --name whatphilipruns \
-  --image ubuntu-26.04 \
-  --type cax11 \
-  --location fsn1 \
-  --ssh-key "gerdes.philip@gmail.com" \
-  --user-data-from-file ./cloudconf.yaml
+All of these commands assume the following ssh config setting:
+```
+Host wpr
+    HostName xxxx:xxx:xxxx:xxxx::1
+    Port 2222
 ```
 
-## Rebuild
-
+### NixOS Rebuild (Soft)
+Run this upon config changes to update the VPS instance:
 ```sh
-set -a && source .env && set +a && hcloud server rebuild whatphilipruns \
-  --image ubuntu-26.04 \
-  --user-data-from-file ./cloudconf.yaml
+NIX_SSHOPTS="-p 2222" nix run --inputs-from . nixpkgs#nixos-rebuild-ng -- switch --sudo \
+   --flake "path:.#whatphilipruns" \
+   --build-host philip@wpr \
+   --target-host philip@wpr
 ```
 
-`WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!`<br>
-This has to be run after every rebuild
+### NixOS Test Build (Dry Run)
+
+`dry-build`
+Evaluate the config and list what would be built.
 ```sh
-ssh-keygen -R "[<server-ip>]:2222"
+NIX_SSHOPTS="-p 2222" nix run --inputs-from . nixpkgs#nixos-rebuild-ng -- dry-build \
+   --flake "path:.#whatphilipruns" \
+   --build-host philip@wpr
 ```
 
-## Setup
-
-`Setup`
+`dry-activate`
+Run the full build but not apply it yet.
 ```sh
-git clone https://github.com/whatphilipcodes/whatphilipruns && bash whatphilipruns/setup.sh
+NIX_SSHOPTS="-p 2222" nix run --inputs-from . nixpkgs#nixos-rebuild-ng -- dry-activate --sudo \
+   --flake "path:.#whatphilipruns" \
+   --build-host philip@wpr \
+   --target-host philip@wpr
 ```
 
 ## Local Dev
@@ -76,6 +68,7 @@ git clone https://github.com/whatphilipcodes/whatphilipruns && bash whatphilipru
     ```
 
 3. Connect to the dev container via SSH.
+
 
 ## Troubleshooting
 

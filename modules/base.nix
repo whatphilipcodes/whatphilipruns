@@ -11,6 +11,7 @@
 
     system.stateVersion = "26.05";
 
+    programs.nix-ld.enable = true; # fixes vscode-server issue
     environment.systemPackages = with pkgs; [
       ghostty.terminfo
       git
