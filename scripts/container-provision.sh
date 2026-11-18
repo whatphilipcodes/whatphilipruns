@@ -95,7 +95,7 @@ resolve_ips() {
 
 install_nixos() {
   nixos-anywhere \
-    --flake "path:.#$HCLOUD_SERVER_NAME" \
+    --flake "path:.#wpr" \
     --build-on remote \
     --target-host root@"$IP"
 }
