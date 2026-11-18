@@ -1,3 +1,6 @@
 .env*
 !.env.example
 .DS_Store
+
+*secret*
+*cache*

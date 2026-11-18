@@ -12,17 +12,17 @@ scoop install main/hcloud
 ```
 and
 ```sh
-# .env.local
+# .env
 HCLOUD_TOKEN="RW_TOKEN_HERE"
 ```
 
 ## Creation
 
 ```sh
-set -a && source .env.local && set +a && hcloud server create \
+set -a && source .env && set +a && hcloud server create \
   --name whatphilipruns \
   --image ubuntu-26.04 \
-  --type cx23 \
+  --type cax11 \
   --location fsn1 \
   --ssh-key "gerdes.philip@gmail.com" \
   --user-data-from-file ./cloudconf.yaml
@@ -31,7 +31,7 @@ set -a && source .env.local && set +a && hcloud server create \
 ## Rebuild
 
 ```sh
-set -a && source .env.local && set +a && hcloud server rebuild whatphilipruns \
+set -a && source .env && set +a && hcloud server rebuild whatphilipruns \
   --image ubuntu-26.04 \
   --user-data-from-file ./cloudconf.yaml
 ```

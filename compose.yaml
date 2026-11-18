@@ -14,6 +14,13 @@ x-base-config: &base
   networks:
     - app_net
 
+x-db-env: &db-env
+  DB_HOST: postgres
+  DB_PORT: 5432
+  DB_NAME: whatphilipstores_db
+  DB_USER: postgres
+  DB_PASSWORD: secure_super_password
+
 networks:
   app_net:
     driver: bridge
@@ -59,14 +66,12 @@ services:
       dockerfile: Containerfile
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_DB: whatphilipstores_db
       POSTGRES_PASSWORD: secure_super_password
-      DB_PASSWORD_APP_TIMETRACKER: localdev_password
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
-      - ./config/postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:Z
 
   time_migrator:
     <<: *base
@@ -77,13 +82,9 @@ services:
       context: ./apps/timetracker
       dockerfile: Containerfile
       target: dev
-    command: ["sh", "-c", "pnpm run build:scripts && node bin/migrate.mjs"]
+    command: ["sh", "-c", "vpr db:migrate"]
     environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: whatphilipstores_db
-      DB_USER: postgres
-      DB_PASSWORD: secure_super_password
+      <<: *db-env
     volumes:
       - ./apps/timetracker:/workspace/apps/timetracker:z
       - dev_time_node_modules:/workspace/apps/timetracker/node_modules
@@ -104,24 +105,17 @@ services:
       - "3000:3000"
       - "127.0.0.1:2222:22"
     environment:
-      <<: *git-env
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: whatphilipstores_db
-      DB_USER: postgres
-      DB_PASSWORD: secure_super_password
-      API_ACCESS_TOKEN: local_dev_token
-      INF_URL: http://dev_inferno:8000
-      AUTH_USERNAME: philip
-      AUTH_PASSWORD_HASH: scrypt$16384$8$1$7c86a55c1f89e677b1324c806a2daee0$70df5698ba58e7823c6a1bd84d8564c7daceb78a2247eea4d1b2f7deb9b41907a6ed9f2a86f909dfee6c0e5c5bb5c523af92a0d02d26b6cb6627429f2b9ceaff # password: localdev
+      <<: [*git-env, *db-env]
+      BETTER_AUTH_SECRET: 9aa1487d5571805b6c4bb7b0972a010dab674e98e5d3172de76794e76f3c3243
+      BETTER_AUTH_URL: http://localhost:3000
       CHOKIDAR_USEPOLLING: "1"
       CHOKIDAR_INTERVAL: "500"
     volumes:
       - ./.git/modules/apps/timetracker:/workspace/.git/modules/apps/timetracker:z
       - ./apps/timetracker:/workspace/apps/timetracker:z
       - dev_time_node_modules:/workspace/apps/timetracker/node_modules
-      - dev_time_codium:/root/.vscodium-server
-      - dev_time_vscode:/root/.vscode-server
+      - dev_time_codium:/home/vp/.vscodium-server
+      - dev_time_vscode:/home/vp/.vscode-server
       - dev_time_ssh:/etc/ssh
     depends_on:
       time_migrator:
