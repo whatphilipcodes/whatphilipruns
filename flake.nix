@@ -21,7 +21,7 @@
     };
 
     secrets = {
-      url = "git+ssh://git@github.com/your-org/nix-secrets";
+      url = "git+https://github.com/whatphilipcodes/inix-secrets";
     };
   };
 
