@@ -1,0 +1,35 @@
+# NetBird combined-server configuration.
+# Secret values are supplied at runtime through Podman secrets:
+#   NB_AUTH_SECRET
+#   NB_STORE_ENCRYPTION_KEY
+#   NB_IDP_SESSION_COOKIE_ENCRYPTION_KEY
+
+server:
+  listenAddress: ":@SERVER_PORT@"
+  exposedAddress: "https://@DOMAIN@:443"
+  stunPorts:
+    - 3478 # @STUN_PORT@ is replaced by Nix
+  metricsPort: 9090
+  healthcheckAddress: ":9000"
+  logLevel: "info"
+  logFile: "console"
+  dataDir: "/var/lib/netbird"
+
+  auth:
+    issuer: "https://@DOMAIN@/oauth2"
+    signKeyRefreshEnabled: true
+    dashboardRedirectURIs:
+      - "https://@DOMAIN@/nb-auth"
+      - "https://@DOMAIN@/nb-silent-auth"
+    cliRedirectURIs:
+      - "http://localhost:53000/"
+
+  # Traefik shares the pod's network namespace, so management sees it on loopback.
+  reverseProxy:
+    trustedHTTPProxies:
+      - "127.0.0.1/32"
+    trustedPeers:
+      - "127.0.0.1/32"
+
+  store:
+    engine: "sqlite"

@@ -1,4 +1,7 @@
+{ inputs, ... }:
 {
+  imports = [ inputs.disko.nixosModules.disko ];
+
   # ---- disk (Hetzner Cloud ARM: UEFI only) ----
   #
   # Partitions get an explicit `device` (the kernel's node) instead of disko's default

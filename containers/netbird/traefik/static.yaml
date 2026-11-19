@@ -1,0 +1,44 @@
+log:
+  level: INFO
+
+accessLog: {}
+
+providers:
+  file:
+    filename: /etc/traefik/dynamic.yaml
+
+entryPoints:
+  web:
+    address: ":@TRAEFIK_WEB_PORT@"
+    http:
+      aliasHeadersStrategy: delete
+      redirections:
+        entryPoint:
+          # Redirect to the public HTTPS port, not the pod-internal port.
+          to: ":443"
+          scheme: https
+
+  websecure:
+    address: ":@TRAEFIK_WEBSECURE_PORT@"
+    allowACMEByPass: true
+    http:
+      aliasHeadersStrategy: delete
+    # Disable timeouts for long-lived gRPC streams.
+    transport:
+      respondingTimeouts:
+        readTimeout: 0s
+        writeTimeout: 0s
+        idleTimeout: 0s
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: "@ACME_EMAIL@"
+      storage: /letsencrypt/acme.json
+      tlsChallenge: {}
+
+# gRPC transport settings.
+serversTransport:
+  forwardingTimeouts:
+    responseHeaderTimeout: 0s
+    idleConnTimeout: 0s

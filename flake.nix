@@ -26,39 +26,27 @@
   };
 
   outputs =
-    {
-      nixpkgs,
-      disko,
-      home-manager,
-      quadlet-nix,
-      secrets,
-      ...
-    }:
-    {
-      nixosConfigurations.wpr = nixpkgs.lib.nixosSystem {
-        system = "aarch64-linux";
-        specialArgs.secrets = secrets.lib.secrets;
-        modules = [
-          disko.nixosModules.disko
-          quadlet-nix.nixosModules.default
-          (
-            { secrets, ... }:
-            {
-              imports = [ home-manager.nixosModules.home-manager ];
-              home-manager.extraSpecialArgs = { inherit secrets; };
-            }
-          )
-          ./modules/base.nix
-          ./modules/hetzner.nix
-          ./modules/disk.nix
-          ./modules/users.nix
-          ./modules/ssh.nix
-          ./modules/firewall.nix
-          ./modules/home.nix
+    inputs@{ nixpkgs, secrets, ... }:
+    let
+      lib = nixpkgs.lib;
+      hostNames = lib.attrNames (
+        lib.filterAttrs (_: type: type == "directory") (builtins.readDir ./hosts)
+      );
 
-          ./modules/virtualisation.nix
-          ./modules/containers
-        ];
-      };
+      mkHost =
+        name:
+        nixpkgs.lib.nixosSystem {
+          specialArgs = {
+            inherit inputs;
+            secrets = secrets.lib.secrets;
+          };
+          modules = [
+            { networking.hostName = name; }
+            ./hosts/${name}
+          ];
+        };
+    in
+    {
+      nixosConfigurations = lib.genAttrs hostNames mkHost;
     };
 }

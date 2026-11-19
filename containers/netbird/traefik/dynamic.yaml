@@ -1,0 +1,47 @@
+http:
+  routers:
+    # gRPC router: the backend must use h2c for cleartext HTTP/2.
+    netbird-grpc:
+      rule: 'Host(`@DOMAIN@`) && (PathPrefix(`/signalexchange.SignalExchange/`) || PathPrefix(`/management.ManagementService/`) || PathPrefix(`/management.ProxyService/`))'
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      service: netbird-server-h2c
+      priority: 100
+
+    # HTTP backend: relay, WebSocket, API and embedded IdP.
+    netbird-backend:
+      rule: 'Host(`@DOMAIN@`) && (PathPrefix(`/relay`) || PathPrefix(`/ws-proxy/`) || PathPrefix(`/api`) || PathPrefix(`/oauth2`))'
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      service: netbird-server
+      priority: 100
+
+    # Dashboard catch-all.
+    netbird-dashboard:
+      rule: 'Host(`@DOMAIN@`)'
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      service: dashboard
+      priority: 1
+
+  services:
+    netbird-server:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:@SERVER_PORT@"
+
+    netbird-server-h2c:
+      loadBalancer:
+        servers:
+          - url: "h2c://127.0.0.1:@SERVER_PORT@"
+
+    dashboard:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:80"
