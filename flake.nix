@@ -40,7 +40,7 @@
         specialArgs.secrets = secrets.lib.secrets;
         modules = [
           disko.nixosModules.disko
-          quadlet-nix.nixosModules.quadlet
+          quadlet-nix.nixosModules.default
           (
             { secrets, ... }:
             {
@@ -55,6 +55,9 @@
           ./modules/ssh.nix
           ./modules/firewall.nix
           ./modules/home.nix
+
+          ./modules/virtualisation.nix
+          ./modules/containers
         ];
       };
     };
