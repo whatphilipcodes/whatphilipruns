@@ -1,19 +1,22 @@
 # Remote VPS Setup
 
-### Setup / Rebuild
+### Setup / Hard Rebuild
+
+> This has to be run from a host machine, `NOT` from the server you are going to provision
+
+#### Prerequisites
+
+- `podman` installed
+- podman `vm` running
+
 Make sure you created `secrets.nix` and `.env`, both populated with your data. You can find the required structures for both in `secrets.example.nix` and `.env.example`. Once that is set up, you can run the `init.sh` script to instantiate the VPS on Hetzner's infra:
+
 ```sh
 bash init.sh
 ```
 
-All of these commands assume the following ssh config setting:
-```
-Host wpr
-    HostName xxxx:xxx:xxxx:xxxx::1
-    Port 2222
-```
-
 ### NixOS Rebuild (Soft)
+
 Run this upon config changes to update the VPS instance:
 ```sh
 sudo nixos-rebuild switch
@@ -24,13 +27,13 @@ sudo nixos-rebuild switch
 `dry-build`
 Evaluate the config and list what would be built.
 ```sh
-sudo nixos-rebuild build
+sudo nixos-rebuild dry-build
 ```
 
 `dry-activate`
 Run the full build but not apply it yet.
 ```sh
-sudo nixos-rebuild test
+sudo nixos-rebuild dry-activate
 ```
 
 ## Local Dev
