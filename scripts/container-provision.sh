@@ -7,6 +7,14 @@ set -a && source .env && set +a # before lib.sh, so the config there wins
 # shellcheck source=lib.sh
 . scripts/lib.sh
 
+# Private flake inputs (git+https://github.com/...): give git and nix the GH_TOKEN from .env.
+if [ -n "${GH_TOKEN:-}" ]; then
+  export GIT_CONFIG_COUNT=1
+  export GIT_CONFIG_KEY_0="url.https://x-access-token:${GH_TOKEN}@github.com/.insteadOf"
+  export GIT_CONFIG_VALUE_0="https://github.com/"
+  export NIX_CONFIG="access-tokens = github.com=${GH_TOKEN}" # for github: style inputs
+fi
+
 root_ssh_ready() { ssh -p 22 "${SSH_OPTS[@]}" root@"$IP" true; }
 
 # Host ~/.ssh is mounted read-only; copy the private keys into the container's
@@ -93,11 +101,33 @@ resolve_ips() {
   return 0
 }
 
+INSTALL_ATTEMPTS=3
+
+dump_installer_state() {
+  ssh -p 22 "${SSH_OPTS[@]}" root@"$IP" \
+    'lsblk -o NAME,SIZE,PARTLABEL,FSTYPE; echo; ls -l /dev/disk/by-partlabel/ 2>&1; echo; dmesg | tail -n 30' \
+    >&2 || true
+}
+
 install_nixos() {
-  nixos-anywhere \
-    --flake "path:.#wpr" \
-    --build-on remote \
-    --target-host root@"$IP"
+  local attempt
+  local na=(nixos-anywhere --flake "path:.#wpr" --build-on remote --target-host "root@$IP")
+
+  # Phase 1: boot the installer once. Retries below skip this.
+  "${na[@]}" --phases kexec
+  wait_until "installer root@$IP:22" 120 root_ssh_ready
+
+  # Phase 2: disko + install + reboot. Disko wipes the disk first, so re-running is safe.
+  for ((attempt = 1; attempt <= INSTALL_ATTEMPTS; attempt++)); do
+    echo "nixos-anywhere (disko, install, reboot): attempt $attempt/$INSTALL_ATTEMPTS ..."
+    if "${na[@]}" --phases disko,install,reboot; then
+      return 0
+    fi
+    echo "Attempt $attempt failed. Installer state:" >&2
+    dump_installer_state
+    sleep 5
+  done
+  die "nixos-anywhere failed $INSTALL_ATTEMPTS times"
 }
 
 write_result() {
