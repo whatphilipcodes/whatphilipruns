@@ -14,16 +14,18 @@ entryPoints:
       aliasHeadersStrategy: delete
       redirections:
         entryPoint:
-          # Redirect to the public HTTPS port, not the pod-internal port.
+          # Redirect HTTP to the public HTTPS port.
           to: ":443"
           scheme: https
 
   websecure:
+    # Port 8444 is published by the pod as public TCP/443. The NetBird proxy
+    # itself uses 8443 in this shared pod network namespace.
     address: ":@TRAEFIK_WEBSECURE_PORT@"
     allowACMEByPass: true
     http:
       aliasHeadersStrategy: delete
-    # Disable timeouts for long-lived gRPC streams.
+    # Preserve long-lived gRPC streams and proxy connections.
     transport:
       respondingTimeouts:
         readTimeout: 0s
@@ -37,7 +39,6 @@ certificatesResolvers:
       storage: /letsencrypt/acme.json
       tlsChallenge: {}
 
-# gRPC transport settings.
 serversTransport:
   forwardingTimeouts:
     responseHeaderTimeout: 0s

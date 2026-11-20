@@ -1,7 +1,7 @@
 { ... }:
 {
   imports = [
-    # This path is one level deeper than the original containers/netbird.nix.
+    # Keep using the same quadlet-nix implementation as the original module.
     ../../modules/virtualisation/quadlet.nix
 
     ./options.nix
@@ -12,5 +12,6 @@
     ./traefik
     ./dashboard.nix
     ./server
+    ./proxy
   ];
 }

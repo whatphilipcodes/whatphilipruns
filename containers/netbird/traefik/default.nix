@@ -1,8 +1,4 @@
-{
-  config,
-  pkgs,
-  ...
-}:
+{ config, lib, pkgs, ... }:
 let
   common = import ../common.nix { inherit config; };
   inherit (common) cfg ports containers;
@@ -15,9 +11,10 @@ let
   );
 
   dynamicConfig = pkgs.writeText "netbird-traefik-dynamic.yaml" (
-    builtins.replaceStrings [ "@DOMAIN@" "@SERVER_PORT@" ] [ cfg.domain (toString ports.server) ] (
-      builtins.readFile ./dynamic.yaml
-    )
+    builtins.replaceStrings
+      [ "@DOMAIN@" "@SERVER_PORT@" "@PROXY_PORT@" ]
+      [ cfg.domain (toString ports.server) (toString ports.proxy) ]
+      (builtins.readFile ./dynamic.yaml)
   );
 in
 {

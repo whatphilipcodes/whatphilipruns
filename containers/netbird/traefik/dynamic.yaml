@@ -20,7 +20,7 @@ http:
       service: netbird-server
       priority: 100
 
-    # Dashboard catch-all.
+    # Dashboard catch-all for the NetBird management hostname.
     netbird-dashboard:
       rule: 'Host(`@DOMAIN@`)'
       entryPoints:
@@ -45,3 +45,30 @@ http:
       loadBalancer:
         servers:
           - url: "http://127.0.0.1:80"
+
+tcp:
+  routers:
+    # Send every TLS hostname except the management hostname to the NetBird
+    # proxy unchanged. Its own TLS listener performs ACME and termination.
+    netbird-proxy-passthrough:
+      rule: 'HostSNI(`*`) && !HostSNI(`@DOMAIN@`)'
+      entryPoints:
+        - websecure
+      service: netbird-proxy
+      priority: 1
+      tls:
+        passthrough: true
+
+  services:
+    netbird-proxy:
+      loadBalancer:
+        servers:
+          - address: "127.0.0.1:@PROXY_PORT@"
+        serversTransport: pp-v2@file
+
+  # Traefik sends PROXY protocol v2 so the NetBird proxy can recover the
+  # original client's address after the TLS passthrough hop.
+  serversTransports:
+    pp-v2:
+      proxyProtocol:
+        version: 2

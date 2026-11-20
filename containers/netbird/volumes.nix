@@ -12,5 +12,6 @@ in
   virtualisation.quadlet.volumes = {
     netbird-data = volume;
     netbird-letsencrypt = volume;
+    netbird-proxy-certs = volume;
   };
 }
