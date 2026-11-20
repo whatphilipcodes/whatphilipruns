@@ -35,6 +35,7 @@
   # ---- netbird ----
   my.netbird = {
     domain = "vpn.hellmar.de";
+    proxy.domain = "hellmar.de";
     acmeEmail = secrets.EMAIL;
   };
 }
