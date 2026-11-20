@@ -9,6 +9,7 @@
     ./network.nix
     ./volumes.nix
     ./podman-secrets.nix
+    ./crowdsec
     ./traefik
     ./dashboard.nix
     ./server

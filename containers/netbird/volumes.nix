@@ -13,5 +13,7 @@ in
     netbird-data = volume;
     netbird-letsencrypt = volume;
     netbird-proxy-certs = volume;
+    netbird-crowdsec-config = volume;
+    netbird-crowdsec-data = volume;
   };
 }

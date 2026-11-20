@@ -23,7 +23,9 @@ containers/netbird/
 │   ├── default.nix
 │   ├── static.yaml
 │   └── dynamic.yaml
-└── proxy/
+├── proxy/
+│   └── default.nix
+└── crowdsec/
     └── default.nix
 ```
 
@@ -35,6 +37,8 @@ important for the loopback connections between the services:
 - NetBird server: `127.0.0.1:8081`
 - Dashboard: `127.0.0.1:80`
 - NetBird proxy: `127.0.0.1:8443`
+- CrowdSec LAPI: `127.0.0.1:8080` (not published on the host)
+- NetBird proxy health endpoint: `127.0.0.1:8082` (not published on the host)
 - Traefik HTTPS entrypoint: `:8444`, published by the pod as host TCP/443
 
 Traefik cannot keep using 8443 internally because the NetBird proxy also listens
@@ -57,11 +61,11 @@ The host configuration must set the regular NetBird domain and ACME email:
 
 ```nix
 my.netbird = {
-  domain = "netbird.example.com";
-  acmeEmail = "admin@example.com";
+  domain = "vpn.hellmar.de";
+  acmeEmail = "admin@hellmar.de";
 
-  # Optional; defaults to "proxy." + domain above.
-  proxy.domain = "proxy.example.com";
+  # Use the root domain for service subdomains such as homeassistant.hellmar.de.
+  proxy.domain = "hellmar.de";
 
   # Optional: useful when peers cannot discover the proxy's public address via
   # STUN. Leave unset to let the embedded NetBird client discover it.
@@ -178,21 +182,76 @@ usable public address. If `netbird status -d` on a peer shows the proxy peer as
 `public-IP/internal-IP-or-interface`), confirm the same UDP port is reachable,
 and rebuild.
 
+
+## CrowdSec IP reputation
+
+The module adds a CrowdSec LAPI container (`crowdsecurity/crowdsec:v1.8.1`)
+inside the same pod. It persists `/etc/crowdsec` and `/var/lib/crowdsec/data`,
+installs `crowdsecurity/linux`, and exposes its LAPI only on the shared pod
+loopback at `127.0.0.1:8080` (no host port is published).
+
+The proxy health endpoint is explicitly moved to `127.0.0.1:8082` with
+`NB_PROXY_HEALTH_ADDRESS`. This is required because all containers share one pod
+network namespace: CrowdSec LAPI occupies port 8080 by default, which is also
+the proxy health endpoint default. Without this override the proxy exits with
+`bind: address already in use` and the cluster repeatedly goes offline.
+
+The proxy's startup preparation script now manages two separate credentials:
+
+- `netbird-proxy-token`: the NetBird management-issued proxy token.
+- `netbird-crowdsec-bouncer-key`: the CrowdSec LAPI bouncer API key.
+
+If the CrowdSec bouncer secret is missing, the script waits for
+`cscli lapi status`, deletes any orphaned `netbird-proxy` bouncer registration
+left behind by a lost secret, creates a fresh bouncer key with
+`cscli bouncers add netbird-proxy -o raw`, and pipes it directly into the
+rootless Podman secret store. The proxy receives it as
+`NB_PROXY_CROWDSEC_API_KEY`; it reaches LAPI at
+`NB_PROXY_CROWDSEC_API_URL=http://127.0.0.1:8080`.
+
+After deployment, verify:
+
+```sh
+podman exec systemd-netbird-crowdsec cscli lapi status
+podman exec systemd-netbird-crowdsec cscli bouncers list
+podman secret ls
+```
+
+The proxy advertises CrowdSec support once it has the LAPI URL and key. In the
+NetBird dashboard, configure CrowdSec individually for each reverse-proxy
+service under **Access Control**. Start with **Observe**; switch to **Enforce**
+after reviewing verdicts. In enforce mode, a proxy whose bouncer has not
+completed its initial sync denies connections (fail-closed).
+
+**Log collection caveat:** This deployment currently uses CrowdSec for the
+community IP-reputation blocklist. It installs `crowdsecurity/linux`, but does
+not mount host SSH/syslog logs into the container. Therefore that collection
+will not generate local SSH/syslog detections until log sources and matching
+acquisition configuration are deliberately added. CrowdSec's community
+blocklist remains available without local log sources. Optional CrowdSec
+Console enrollment is also not required.
+
+CrowdSec AppSec for the NetBird dashboard, `/api`, and `/oauth2` is a separate
+integration and is intentionally not enabled here. Its failure behavior can
+block dashboard access, so it should be designed and tested separately.
+
 ## Automatic updates
 
-The server, dashboard, Traefik and NetBird proxy containers have
+The server, dashboard, Traefik, NetBird proxy and CrowdSec containers have
 `AutoUpdate = "registry"`. Podman's user-level auto-update timer must be enabled
 for the `podman` user. Traefik remains pinned to its configured numeric tag;
-auto-update follows that tag rather than changing major/minor versions.
+CrowdSec is pinned to the currently validated `v1.8.1` tag.
 
 ## Persistence and backups
 
 - `netbird-data.volume` stores the NetBird database and state.
 - `netbird-letsencrypt.volume` stores Traefik's writable `acme.json`.
 - `netbird-proxy-certs.volume` stores certificates managed by the NetBird proxy.
+- `netbird-crowdsec-config.volume` stores CrowdSec configuration and credentials.
+- `netbird-crowdsec-data.volume` stores the CrowdSec database and downloaded data.
 - Rootless Podman secrets belong to the Podman owner's store.
 
-Back up Podman storage/secrets, all three volumes, and the host configuration
+Back up Podman storage/secrets, all persistent volumes, and the host configuration
 together. In particular, losing `netbird-store-encryption-key` while retaining
 the database makes encrypted database values unreadable. Losing the proxy
 access token can be repaired by issuing a new management token; losing the

@@ -16,6 +16,9 @@ in
     # listens on 8443, so Traefik's HTTPS entrypoint must use another port.
     traefikWebsecure = 8444;
     proxy = 8443;
+    # CrowdSec LAPI uses 8080 and NetBird management uses 8081.
+    # The proxy health endpoint must use its own port in the shared pod.
+    proxyHealth = 8082;
     stun = 3478;
     proxyWireguard = cfg.proxy.wireguardPort;
   };

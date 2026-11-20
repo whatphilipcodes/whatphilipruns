@@ -92,6 +92,16 @@
         default = "docker.io/netbirdio/reverse-proxy:latest";
         description = "NetBird self-hosted reverse-proxy service.";
       };
+
+      crowdsec = lib.mkOption {
+        type = lib.types.str;
+        default = "docker.io/crowdsecurity/crowdsec:v1.8.1";
+        description = ''
+          CrowdSec Local API used by the NetBird proxy's IP reputation bouncer.
+          v1.8.1 is the version validated by the current NetBird self-hosting
+          upgrade documentation.
+        '';
+      };
     };
   };
 }
