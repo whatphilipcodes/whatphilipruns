@@ -9,7 +9,8 @@ in
     containerConfig = {
       Image = cfg.images.crowdsec;
       AutoUpdate = "registry";
-      Pod = "netbird.pod";
+      Network = [ "netbird.network" ];
+      NetworkAlias = [ "netbird-crowdsec" ];
       Environment = {
         # Keep the same collection as NetBird's official self-hosted guide.
         # Without mounted log sources it installs the Linux parsers/scenarios,

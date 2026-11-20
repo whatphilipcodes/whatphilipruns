@@ -96,35 +96,29 @@ let
   '';
 
   proxyEnvironment = {
-    # Management gRPC is local to the shared pod network namespace.
+    # Containers use stable DNS aliases on the dedicated bridge network.
     NB_PROXY_DOMAIN = proxyDomain;
-    NB_PROXY_MANAGEMENT_ADDRESS = "http://127.0.0.1:${toString ports.server}";
+    NB_PROXY_MANAGEMENT_ADDRESS = "http://netbird-server:${toString ports.server}";
     NB_PROXY_ALLOW_INSECURE = "true";
 
-    # Traefik is on the same pod network namespace. It listens on 8444 and
-    # forwards TLS passthrough connections to this proxy on 8443.
+    # Traefik reaches this listener over the dedicated bridge network. TLS is
+    # passed through unchanged on the internal 8443 listener.
     NB_PROXY_ADDRESS = ":${toString ports.proxy}";
     NB_PROXY_CERTIFICATE_DIRECTORY = "/certs";
     NB_PROXY_ACME_CERTIFICATES = "true";
     NB_PROXY_ACME_CHALLENGE_TYPE = "tls-alpn-01";
     NB_PROXY_FORWARDED_PROTO = "https";
 
-    # Preserve the client IP in Traefik's PROXY protocol v2 hop. Since the
-    # backend is reached via 127.0.0.1 inside a shared pod namespace, that is
-    # the source address the proxy should trust.
+    # Traefik sends PROXY protocol v2. Trust only addresses on our dedicated
+    # bridge subnet, rather than trusting all container networks.
     NB_PROXY_PROXY_PROTOCOL = "true";
-    NB_PROXY_TRUSTED_PROXIES = "127.0.0.1/32";
+    NB_PROXY_TRUSTED_PROXIES = cfg.network.subnet;
 
     NB_PROXY_WG_PORT = toString ports.proxyWireguard;
     NB_PROXY_LOG_LEVEL = "info";
 
-    # All containers share the pod network namespace. CrowdSec LAPI uses 8080,
-    # so move the proxy health listener away from its default localhost:8080.
-    NB_PROXY_HEALTH_ADDRESS = "127.0.0.1:${toString ports.proxyHealth}";
-
-    # CrowdSec LAPI shares the same pod network namespace. It is not published
-    # on the host; pod containers reach it through loopback.
-    NB_PROXY_CROWDSEC_API_URL = "http://127.0.0.1:8080";
+    # CrowdSec LAPI is not published on the host; reach it using its network DNS alias.
+    NB_PROXY_CROWDSEC_API_URL = "http://netbird-crowdsec:8080";
   } // lib.optionalAttrs (cfg.proxy.externalIPMap != null) {
     NB_PROXY_EXTERNAL_IP_MAP = cfg.proxy.externalIPMap;
   };
@@ -135,7 +129,12 @@ in
     containerConfig = {
       Image = cfg.images.proxy;
       AutoUpdate = "registry";
-      Pod = "netbird.pod";
+      Network = [ "netbird.network" ];
+      NetworkAlias = [ "netbird-proxy" ];
+      # The proxy's WireGuard listener and configured Layer-4 services must be
+      # published directly; HTTPS/TLS traffic reaches it through Traefik.
+      PublishPort = [ "${toString ports.proxyWireguard}:${toString ports.proxyWireguard}/udp" ]
+        ++ cfg.proxy.additionalPublishPorts;
       Environment = proxyEnvironment;
       Volume = [
         "netbird-proxy-certs.volume:/certs"

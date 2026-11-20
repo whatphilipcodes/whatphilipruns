@@ -5,8 +5,20 @@ let
 
   serverConfig = pkgs.writeText "netbird-config.yaml" (
     builtins.replaceStrings
-      [ "@DOMAIN@" "@SERVER_PORT@" "3478 # @STUN_PORT@ is replaced by Nix" ]
-      [ cfg.domain (toString ports.server) (toString ports.stun) ]
+      [
+        "@DOMAIN@"
+        "@SERVER_PORT@"
+        "3478 # @STUN_PORT@ is replaced by Nix"
+        "@LOCAL_AUTH_DISABLED@"
+        "@NETWORK_SUBNET@"
+      ]
+      [
+        cfg.domain
+        (toString ports.server)
+        (toString ports.stun)
+        (if cfg.auth.localAuthDisabled then "true" else "false")
+        cfg.network.subnet
+      ]
       (builtins.readFile ./config.yaml)
   );
 in
@@ -16,7 +28,10 @@ in
     containerConfig = {
       Image = cfg.images.server;
       AutoUpdate = "registry";
-      Pod = "netbird.pod";
+      Network = [ "netbird.network" ];
+      NetworkAlias = [ "netbird-server" ];
+      # STUN must be published directly as UDP; it cannot pass through Traefik.
+      PublishPort = [ "${toString ports.stun}:${toString ports.stun}/udp" ];
       Exec = "--config /etc/netbird/config.yaml";
       Volume = [
         "netbird-data.volume:/var/lib/netbird"

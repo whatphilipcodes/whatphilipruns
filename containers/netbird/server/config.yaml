@@ -17,6 +17,9 @@ server:
 
   auth:
     issuer: "https://@DOMAIN@/oauth2"
+    # Set to true only after the external Pocket ID login has been tested and
+    # the external user has been promoted to Owner.
+    localAuthDisabled: @LOCAL_AUTH_DISABLED@
     signKeyRefreshEnabled: true
     dashboardRedirectURIs:
       - "https://@DOMAIN@/nb-auth"
@@ -24,12 +27,12 @@ server:
     cliRedirectURIs:
       - "http://localhost:53000/"
 
-  # Traefik shares the pod's network namespace, so management sees it on loopback.
+  # Trust only the dedicated container network, where Traefik connects from.
   reverseProxy:
     trustedHTTPProxies:
-      - "127.0.0.1/32"
+      - "@NETWORK_SUBNET@"
     trustedPeers:
-      - "127.0.0.1/32"
+      - "@NETWORK_SUBNET@"
 
   store:
     engine: "sqlite"

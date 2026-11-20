@@ -14,6 +14,28 @@
       description = "Email address for Let's Encrypt certificate notifications.";
     };
 
+    network.subnet = lib.mkOption {
+      type = lib.types.str;
+      default = "10.89.0.0/24";
+      example = "10.90.0.0/24";
+      description = ''
+        Dedicated rootless Podman bridge subnet used by the NetBird stack.
+        Choose a subnet that does not overlap host, LAN, NetBird, or other
+        Podman networks. It is also used as the trusted-proxy CIDR for Traefik.
+      '';
+    };
+
+    auth.localAuthDisabled = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Disable NetBird's local email/password authentication after an external
+        identity provider has been configured, tested, and promoted to Owner.
+        This does not replace the embedded IdP issuer; it disables local login
+        while leaving configured external OIDC providers available.
+      '';
+    };
+
     proxy = {
       domain = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
@@ -53,7 +75,7 @@
         default = [ ];
         example = [ "5432:5432/tcp" "5353:5353/udp" ];
         description = ''
-          Additional Podman pod port mappings for TCP/UDP Layer-4 reverse
+          Additional Podman host port mappings for TCP/UDP Layer-4 reverse
           proxy services created in the NetBird dashboard. HTTP and TLS
           services use the existing public TCP port 443 and need no extra
           mapping. Each entry uses Podman PublishPort syntax.

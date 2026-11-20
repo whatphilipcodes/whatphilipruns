@@ -1,0 +1,14 @@
+http:
+  routers:
+    pocket-id:
+      rule: 'Host(`@POCKET_ID_DOMAIN@`)'
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      service: pocket-id
+  services:
+    pocket-id:
+      loadBalancer:
+        servers:
+          - url: "http://pocket-id:1411"

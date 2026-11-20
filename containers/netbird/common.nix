@@ -12,13 +12,10 @@ in
   ports = {
     server = 8081;
     traefikWeb = 8000;
-    # Traefik and the NetBird proxy share a pod network namespace. The proxy
-    # listens on 8443, so Traefik's HTTPS entrypoint must use another port.
-    traefikWebsecure = 8444;
+    # Traefik has its own network namespace, so it can use the standard HTTPS
+    # port independently of the NetBird proxy's internal listener.
+    traefikWebsecure = 443;
     proxy = 8443;
-    # CrowdSec LAPI uses 8080 and NetBird management uses 8081.
-    # The proxy health endpoint must use its own port in the shared pod.
-    proxyHealth = 8082;
     stun = 3478;
     proxyWireguard = cfg.proxy.wireguardPort;
   };

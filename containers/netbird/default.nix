@@ -10,7 +10,7 @@
     ./volumes.nix
     ./podman-secrets.nix
     ./crowdsec
-    ./traefik
+    ../traefik
     ./dashboard.nix
     ./server
     ./proxy

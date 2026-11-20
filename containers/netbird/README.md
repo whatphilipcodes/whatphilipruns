@@ -1,59 +1,61 @@
 # NetBird Quadlet module
 
-This directory defines the NetBird combined server, dashboard, Traefik and the
-self-hosted NetBird reverse-proxy service as separate rootless Quadlet
-containers inside one Podman pod.
+This directory defines the NetBird combined server, dashboard, self-hosted
+reverse proxy, and CrowdSec as separate rootless Quadlet containers on a
+Quadlet-managed Podman bridge network. Traefik and Pocket ID are maintained in
+their own directories but join the same DNS-enabled bridge.
 
 ## Layout
 
 ```text
-containers/netbird/
-├── default.nix
-├── options.nix
-├── assertions.nix
-├── common.nix
-├── network.nix
-├── volumes.nix
-├── podman-secrets.nix
-├── dashboard.nix
-├── server/
+containers/
+├── netbird/
 │   ├── default.nix
-│   └── config.yaml
-├── traefik/
-│   ├── default.nix
-│   ├── static.yaml
-│   └── dynamic.yaml
-├── proxy/
-│   └── default.nix
-└── crowdsec/
-    └── default.nix
+│   ├── options.nix
+│   ├── assertions.nix
+│   ├── common.nix
+│   ├── network.nix
+│   ├── volumes.nix
+│   ├── podman-secrets.nix
+│   ├── dashboard.nix
+│   ├── server/       # NetBird combined-server + YAML config
+│   ├── proxy/        # NetBird reverse proxy + token provisioning
+│   └── crowdsec/     # CrowdSec LAPI
+├── traefik/          # Shared ingress and routes
+└── pocket-id/        # Optional OIDC provider
 ```
 
-## Pod layout and ports
+## Network topology and ports
 
-All containers join `netbird.pod` and share its network namespace. This is
-important for the loopback connections between the services:
+All containers have independent network namespaces and attach to the
+Quadlet-managed `netbird.network` bridge. Podman's DNS aliases provide stable
+service discovery:
 
-- NetBird server: `127.0.0.1:8081`
-- Dashboard: `127.0.0.1:80`
-- NetBird proxy: `127.0.0.1:8443`
-- CrowdSec LAPI: `127.0.0.1:8080` (not published on the host)
-- NetBird proxy health endpoint: `127.0.0.1:8082` (not published on the host)
-- Traefik HTTPS entrypoint: `:8444`, published by the pod as host TCP/443
+- `netbird-server:8081` — Management, Signal, relay HTTP/gRPC backend
+- `netbird-dashboard:80` — dashboard
+- `netbird-proxy:8443` — TLS-passthrough backend
+- `netbird-crowdsec:8080` — CrowdSec Local API (not published)
+- `pocket-id:1411` — Pocket ID HTTP backend (not published)
+- `traefik` — shared ingress container
 
-Traefik cannot keep using 8443 internally because the NetBird proxy also listens
-on 8443. The pod therefore publishes host port 443 to Traefik's internal 8444.
-Traefik passes TLS for every SNI hostname except `my.netbird.domain` through to
-the NetBird proxy. It does not terminate TLS for those proxy service domains.
+The default bridge subnet is `10.89.0.0/24`. Change it with
+`my.netbird.network.subnet` if it overlaps a LAN, NetBird, host, or other
+Podman route. The same subnet is used as the trusted-proxy range for NetBird,
+NetBird Proxy, and Pocket ID. Only containers attached to this dedicated
+network are inside that trust boundary.
 
-The pod publishes:
+Published ports are deliberately owned by the container that listens on them:
 
-- TCP 80 → Traefik HTTP redirect entrypoint
-- TCP 443 → Traefik HTTPS entrypoint
-- UDP 3478 → NetBird STUN
-- UDP `my.netbird.proxy.wireguardPort` (51820 by default) → proxy WireGuard
-- Any entries in `my.netbird.proxy.additionalPublishPorts` for Layer-4 TCP/UDP
-  services created in the dashboard
+- Traefik: TCP 80 and 443
+- NetBird combined server: UDP 3478 (STUN; must be reachable directly)
+- NetBird reverse proxy: UDP 51820 by default (WireGuard), plus configured
+  Layer-4 service ports
+- CrowdSec and Pocket ID: no host-published ports
+
+Traefik passes service-hostname TLS through to `netbird-proxy:8443`. It
+terminates TLS for the NetBird management hostname and Pocket ID. The NetBird
+reverse-proxy feature requires Traefik TLS passthrough; other edge proxies are
+not supported for this feature. See the NetBird documentation.
 
 ## Options
 
@@ -104,10 +106,10 @@ Allow these inbound ports in the Hetzner firewall and the host firewall:
 
 HTTP and TLS reverse-proxy services use TCP 443 and need no additional ports.
 TCP/UDP Layer-4 services need their service ports published in
-`proxy.additionalPublishPorts` and opened in both firewalls.
+`proxy.additionalPublishPorts` on the NetBird proxy container and opened in both firewalls.
 
 The proxy uses Let's Encrypt TLS-ALPN-01. Public TCP/443 must reach Traefik,
-which must pass the `acme-tls/1` ALPN challenge through to the proxy for its
+which passes the `acme-tls/1` ALPN challenge through to the proxy for its
 service hostnames. Do not put a TLS-terminating CDN/proxy in front unless it
 preserves this ALPN protocol.
 
@@ -186,15 +188,14 @@ and rebuild.
 ## CrowdSec IP reputation
 
 The module adds a CrowdSec LAPI container (`crowdsecurity/crowdsec:v1.8.1`)
-inside the same pod. It persists `/etc/crowdsec` and `/var/lib/crowdsec/data`,
-installs `crowdsecurity/linux`, and exposes its LAPI only on the shared pod
-loopback at `127.0.0.1:8080` (no host port is published).
+on the dedicated bridge. It persists `/etc/crowdsec` and `/var/lib/crowdsec/data`,
+installs `crowdsecurity/linux`, and exposes its LAPI only as
+`netbird-crowdsec:8080` on the bridge (no host port is published).
 
-The proxy health endpoint is explicitly moved to `127.0.0.1:8082` with
-`NB_PROXY_HEALTH_ADDRESS`. This is required because all containers share one pod
-network namespace: CrowdSec LAPI occupies port 8080 by default, which is also
-the proxy health endpoint default. Without this override the proxy exits with
-`bind: address already in use` and the cluster repeatedly goes offline.
+The proxy and CrowdSec each have their own network namespace, so both may use
+port 8080 without a bind conflict. The proxy keeps its default local health
+probe listener; CrowdSec LAPI is separately reachable as `netbird-crowdsec:8080`
+on the bridge.
 
 The proxy's startup preparation script now manages two separate credentials:
 
@@ -207,7 +208,7 @@ left behind by a lost secret, creates a fresh bouncer key with
 `cscli bouncers add netbird-proxy -o raw`, and pipes it directly into the
 rootless Podman secret store. The proxy receives it as
 `NB_PROXY_CROWDSEC_API_KEY`; it reaches LAPI at
-`NB_PROXY_CROWDSEC_API_URL=http://127.0.0.1:8080`.
+`NB_PROXY_CROWDSEC_API_URL=http://netbird-crowdsec:8080`.
 
 After deployment, verify:
 
@@ -268,3 +269,93 @@ The module uses native PascalCase Quadlet keys such as `containerConfig.Image`,
 `mirkolenz/quadlet-nix`-style API used by the original module. Do not mix these
 with a different quadlet-nix implementation that expects typed lower-camel-case
 attributes.
+
+
+## Shared Traefik and Pocket ID
+
+Traefik is maintained in the separate `containers/traefik/` directory and
+runs as an independent container on the dedicated `netbird.network` bridge.
+This lets the same public ingress serve the
+NetBird dashboard, NetBird reverse-proxy passthrough, and optional HTTP services
+such as Pocket ID. Traefik's file provider watches a directory containing a
+NetBird route fragment and, when enabled, a Pocket ID route fragment.
+
+Pocket ID is optional and lives in `containers/pocket-id/`. Import it alongside
+this NetBird module and enable it with:
+
+```nix
+my.pocketId = {
+  enable = true;
+  domain = "id.hellmar.de";
+};
+```
+
+The Pocket ID host must be excluded from the NetBird proxy's catch-all TCP
+TLS-passthrough rule. The shared Traefik module does this automatically when
+Pocket ID is enabled. It then terminates HTTPS for `id.hellmar.de` and forwards
+plain HTTP to Pocket ID on `pocket-id:1411`. NetBird Management resolves the
+Pocket ID issuer hostname to Traefik's network alias, so the internal issuer
+lookup traverses the normal TLS router without public-IP hairpinning. The HTTP
+router and NetBird reverse-proxy TCP passthrough can share the same entrypoint:
+Traefik tries TCP routers first and falls back to HTTP routers when no TCP rule
+matches.
+
+Pocket ID's encryption key is generated once into the rootless Podman secret
+store. Its SQLite database and uploads are stored in the `pocket-id-data` volume.
+Back up these together; losing the encryption key can make encrypted Pocket ID
+data unreadable.
+
+
+## Dedicated rootless bridge network
+
+All services now use the Quadlet-managed `netbird.network` bridge instead of
+a shared `netbird.pod`. Each container has its own network namespace, while
+Podman DNS aliases provide service discovery. The default subnet is
+`10.89.0.0/24`, configurable with
+`my.netbird.network.subnet` if it overlaps another host, LAN, NetBird, or
+Podman network. Podman DNS aliases provide stable names between containers.
+
+The Traefik container is the only container publishing TCP 80/443. The
+NetBird server publishes UDP 3478 directly for STUN, and the NetBird proxy
+publishes its WireGuard UDP port (51820 by default) plus any configured Layer-4
+ports. CrowdSec and Pocket ID are not published to the host.
+
+### Rootless source-IP preservation
+
+NetBird STUN and the NetBird proxy's PROXY-protocol/CrowdSec integration need
+accurate client source addresses. Rootless bridge port forwarding uses
+`rootlessport` by default, which can rewrite UDP source addresses. This module
+sets `virtualisation.containers.containersConf.rootless.settings.network.rootless_port_forwarder`
+to `pasta`, which uses the newer `pesto` kernel-level forwarding path, and
+installs `pkgs.passt`. Podman's documentation currently marks this mode
+experimental and requires a sufficiently recent `passt` package containing
+`pesto`. Verify `pesto --version` on the host before deployment.
+
+Changing `rootless_port_forwarder` must be done while no rootless Podman
+containers are running for this user. Stop all containers managed by the
+`podman` user during the migration, not just this stack, then restart them
+after the configuration switch.
+
+### Migrating from the old pod
+
+The change removes `netbird.pod` and creates individual containers on
+`netbird.network`. Named Podman volumes and secrets are retained; do not remove
+`netbird-data`, `netbird-letsencrypt`, `netbird-proxy-certs`, either CrowdSec
+volume, Pocket ID data, or any existing Podman secrets.
+
+During a maintenance window, as the `podman` user:
+
+1. Stop all Quadlet units in this stack and all other containers owned by this
+   rootless Podman user. The rootless port-forwarder setting must not be changed
+   while any of that user's containers are running.
+2. Stop the old `netbird-pod.service`, then remove only the old pod:
+   `podman pod rm -f systemd-netbird`. Do not remove named volumes or secrets.
+3. Apply the NixOS rebuild, run `systemctl --user daemon-reload`, and start the
+   independent units. The `.network` dependencies create `systemd-netbird`
+   before the containers that attach to it.
+4. Verify DNS from the relevant containers, for example
+   `podman exec systemd-netbird-traefik getent hosts netbird-server` and
+   `podman exec systemd-netbird-server getent hosts id.hellmar.de`.
+
+This is a networking migration and will cause a brief outage. It does not
+require recreating persistent volumes or regenerating Podman secrets.

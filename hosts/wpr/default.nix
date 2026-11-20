@@ -22,6 +22,7 @@
 
     # ---- containers (these pull in modules/virtualisation/quadlet.nix) ----
     ../../containers/netbird
+    ../../containers/pocket-id
   ];
 
   # ---- host identity ----
@@ -37,5 +38,11 @@
     domain = "vpn.hellmar.de";
     proxy.domain = "hellmar.de";
     acmeEmail = secrets.EMAIL;
+    auth.localAuthDisabled = true; # make sure access via pocket id is working first!
+  };
+
+  my.pocketId = {
+    enable = true;
+    domain = "id.hellmar.de";
   };
 }

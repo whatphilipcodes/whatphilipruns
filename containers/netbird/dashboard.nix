@@ -9,7 +9,8 @@ in
     containerConfig = {
       Image = cfg.images.dashboard;
       AutoUpdate = "registry";
-      Pod = "netbird.pod";
+      Network = [ "netbird.network" ];
+      NetworkAlias = [ "netbird-dashboard" ];
       Environment = {
         # Endpoints
         NETBIRD_MGMT_API_ENDPOINT = "https://${cfg.domain}";

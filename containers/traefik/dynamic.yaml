@@ -34,24 +34,24 @@ http:
     netbird-server:
       loadBalancer:
         servers:
-          - url: "http://127.0.0.1:@SERVER_PORT@"
+          - url: "http://netbird-server:@SERVER_PORT@"
 
     netbird-server-h2c:
       loadBalancer:
         servers:
-          - url: "h2c://127.0.0.1:@SERVER_PORT@"
+          - url: "h2c://netbird-server:@SERVER_PORT@"
 
     dashboard:
       loadBalancer:
         servers:
-          - url: "http://127.0.0.1:80"
+          - url: "http://netbird-dashboard:80"
 
 tcp:
   routers:
-    # Send every TLS hostname except the management hostname to the NetBird
-    # proxy unchanged. Its own TLS listener performs ACME and termination.
+    # Send service hostnames to the NetBird proxy unchanged. Exclude both
+    # NetBird management and Pocket ID, which are routed by HTTP routers above.
     netbird-proxy-passthrough:
-      rule: 'HostSNI(`*`) && !HostSNI(`@DOMAIN@`)'
+      rule: 'HostSNI(`*`) && !HostSNI(`@DOMAIN@`) && !HostSNI(`@POCKET_ID_DOMAIN@`)'
       entryPoints:
         - websecure
       service: netbird-proxy
@@ -63,7 +63,7 @@ tcp:
     netbird-proxy:
       loadBalancer:
         servers:
-          - address: "127.0.0.1:@PROXY_PORT@"
+          - address: "netbird-proxy:@PROXY_PORT@"
         serversTransport: pp-v2@file
 
   # Traefik sends PROXY protocol v2 so the NetBird proxy can recover the

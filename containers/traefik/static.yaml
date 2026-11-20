@@ -5,7 +5,8 @@ accessLog: {}
 
 providers:
   file:
-    filename: /etc/traefik/dynamic.yaml
+    directory: /etc/traefik/dynamic
+    watch: true
 
 entryPoints:
   web:
@@ -19,8 +20,7 @@ entryPoints:
           scheme: https
 
   websecure:
-    # Port 8444 is published by the pod as public TCP/443. The NetBird proxy
-    # itself uses 8443 in this shared pod network namespace.
+    # Dedicated container namespace: Traefik can use the standard HTTPS port.
     address: ":@TRAEFIK_WEBSECURE_PORT@"
     allowACMEByPass: true
     http:
