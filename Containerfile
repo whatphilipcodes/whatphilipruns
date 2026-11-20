@@ -10,7 +10,7 @@ RUN mkdir -p /etc/nix \
  && printf 'experimental-features = nix-command flakes\nsandbox = false\n' >> /etc/nix/nix.conf
 
 # Own profile (the base image's default profile is managed by nix-env).
-RUN nix profile install --profile /nix/var/nix/profiles/tools \
+RUN nix profile add --profile /nix/var/nix/profiles/tools \
       github:NixOS/nixpkgs/${NIXPKGS_REF}#hcloud \
       github:NixOS/nixpkgs/${NIXPKGS_REF}#nixos-anywhere \
       github:NixOS/nixpkgs/${NIXPKGS_REF}#openssh \
